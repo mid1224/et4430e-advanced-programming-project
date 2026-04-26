@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BM/QLD/DTNCKH/03</title>
+    <style>
+        @page { size: A4 portrait; margin: 16mm; }
+        body { font-family: 'Times New Roman', serif; color: #111; }
+        .sheet { max-width: 190mm; margin: 0 auto; }
+        .code { text-align: right; color: #b30000; font-size: 18px; margin-bottom: 6px; }
+        .org { display: flex; justify-content: space-between; margin-top: 8px; }
+        .org-left, .org-right { font-weight: 700; font-size: 14px; line-height: 1.35; }
+        .org-right { text-align: center; }
+        .main-title { text-align: center; font-size: 24px; font-weight: 700; margin: 10px 0 12px; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 13px; margin-bottom: 8px; }
+        .meta-item { min-height: 20px; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 6px; }
+        th, td { border: 1px solid #222; padding: 4px 3px; font-size: 11px; }
+        th { text-align: center; vertical-align: middle; }
+        .small { font-style: italic; font-weight: 400; }
+        .center { text-align: center; }
+        .ranking { margin-top: 8px; font-size: 11px; }
+        .ranking-title { font-weight: 700; margin-bottom: 6px; }
+        .ranking-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 18px; }
+        .signatures { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 16px; }
+        .signatures div { width: 32%; text-align: center; font-size: 11px; display: flex; flex-direction: column; align-items: center; }
+        .signatures .role { font-weight: 700; font-size: 16px; margin-bottom: 6px; min-height: 58px; line-height: 1.1; display: flex; align-items: flex-start; justify-content: center; }
+        .date { text-align: right; margin-top: 8px; font-size: 11px; }
+    </style>
+</head>
+<body>
+<div class='sheet'>
+    <div class='code'>BM/QLD/DTNCKH/03</div>
+    <div class='org'>
+        <div class='org-left'>
+            B&#7896; C&#212;NG TH&#431;&#416;NG<br>
+            TR&#431;&#7900;NG CAO &#272;&#7852;NG<br>
+            C&#212;NG NGHI&#7878;P TH&#193;I NGUY&#202;N<br>
+            KHOA: <span th:text="${phieu.khoa}"></span><br>
+            L&#7898;P, KH&#211;A: <span th:text="${phieu.tenLop}"></span>, <span th:text="${phieu.khoa}"></span>
+        </div>
+        <div class='org-right'>
+            C&#7896;NG H&#210;A X&#195; H&#7896;I CH&#7910; NGH&#296;A VI&#7878;T NAM<br>
+            &#272;&#7897;c l&#7853;p - T&#7921; do - H&#7841;nh ph&#250;c
+        </div>
+    </div>
+
+    <div class='main-title'>PHI&#7870;U GHI K&#7870;T QU&#7842; H&#7884;C T&#7852;P</div>
+
+    <div class='meta-grid'>
+        <div class='meta-item'><strong>T&#234;n MH/M&#272;:</strong> <span th:text="${phieu.tenMonHoc}"></span></div>
+        <div class='meta-item'><strong>H&#7885;c k&#7923;:</strong> <span th:text="${phieu.hocKy}"></span></div>
+        <div class='meta-item'><strong>M&#227; MH:</strong> <span th:text="${phieu.maMH}"></span></div>
+        <div class='meta-item'><strong>N&#259;m h&#7885;c:</strong> <span th:text="${phieu.namHoc}"></span></div>
+        <div class='meta-item'><strong>H&#236;nh th&#7913;c thi k&#7871;t th&#250;c:</strong> <span th:text="${phieu.hinhThucThiKetThuc}"></span></div>
+        <div class='meta-item'><strong>L&#7847;n thi th&#7913;:</strong> <span th:text="${phieu.lanThiThu}"></span></div>
+    </div>
+
+    <div class='meta-grid' style='font-size: 12px; margin-top: 8px;'>
+        <div><strong>Gi&#225;o vi&#234;n coi thi:</strong> 1. ________  K&#253; t&#234;n: ________   2. ________  K&#253; t&#234;n: ________</div>
+        <div><strong>Gi&#225;o vi&#234;n ch&#7845;m thi:</strong> 1. ________  K&#253; t&#234;n: ________  2. ________  K&#253; t&#234;n: ________</div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th rowspan='2' style='width: 5%'>TT</th>
+            <th rowspan='2' style='width: 8%'>MSSV</th>
+            <th rowspan='2' style='width: 16%'>H&#7885; v&#224; t&#234;n</th>
+            <th>&#272;i&#7875;m KT th&#432;&#7901;ng xuy&#234;n MH/M&#272;</th>
+            <th>&#272;i&#7875;m KT &#273;&#7883;nh k&#7923; MH/M&#272;</th>
+            <th>&#272;i&#7875;m TBC ki&#7875;m tra</th>
+            <th>&#272;i&#7875;m ki&#7875;m tra k&#7871;t th&#250;c MH/M&#272;</th>
+            <th>&#272;i&#7875;m TK</th>
+            <th rowspan='2' style='width: 7%'>&#272;i&#7875;m ch&#7919;</th>
+            <th>Quy &#273;&#7893;i sang &#273;i&#7875;m s&#7889;</th>
+            <th rowspan='2' style='width: 7%'>Ch&#7919; k&#253; SV</th>
+            <th rowspan='2' style='width: 8%'>Ghi ch&#250;</th>
+        </tr>
+        <tr>
+            <th class='small'>H&#7879; s&#7889; 1</th>
+            <th class='small'>H&#7879; s&#7889; 2</th>
+            <th class='small'>TB h&#7879; s&#7889; 1:2</th>
+            <th class='small'>H&#7879; s&#7889; 0,6 / Thang 10</th>
+            <th class='small'>Thang &#273;i&#7875;m 10</th>
+            <th class='small'>Thang &#273;i&#7875;m 4</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="dong,iter : ${phieu.danhSachDiem}">
+            <td class='center' th:text="${iter.count}"></td>
+            <td class='center' th:text="${dong.mssv}"></td>
+            <td th:text="${dong.hoTen}"></td>
+            <td class='center' th:text="${dong.diemKTThuongXuyen}"></td>
+            <td class='center' th:text="${dong.diemKTDinhKy}"></td>
+            <td class='center' th:text="${dong.diemTBC}"></td>
+            <td class='center' th:text="${dong.diemKTKetThuc}"></td>
+            <td class='center' th:text="${dong.diemTongKet}"></td>
+            <td class='center' th:text="${dong.diemChu}"></td>
+            <td class='center' th:text="${dong.diemHe4}"></td>
+            <td></td>
+            <td th:text="${dong.ghiChu}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class='ranking'>
+        <div class='ranking-title'>% X&#7871;p h&#7841;ng theo &#273;i&#7875;m ch&#7919;</div>
+        <div class='ranking-grid'>
+            <div>Lo&#7841;i A: HS = .......%</div>
+            <div>Lo&#7841;i B: HS = .......%</div>
+            <div>Lo&#7841;i C: HS = .......%</div>
+            <div>Lo&#7841;i D: HS = .......%</div>
+            <div>Lo&#7841;i F: HS = .......%</div>
+        </div>
+    </div>
+
+    <div class='date'>
+        Ng&#224;y <span th:text="${phieu.ngayLap.dayOfMonth}"></span>
+        th&#225;ng <span th:text="${phieu.ngayLap.monthValue}"></span>
+        n&#259;m <span th:text="${phieu.ngayLap.year}"></span>
+    </div>
+
+    <div class='signatures'>
+        <div>
+            <div class='role'><u>N&#417;i g&#7917;i:</u></div>
+        </div>
+        <div>
+            <div class='role'>TR&#431;&#7902;NG KHOA</div>
+            (K&#253;, ghi r&#245; h&#7885; t&#234;n)
+        </div>
+        <div>
+            <div class='role'>GI&#193;O VI&#202;N GI&#7842;NG</div>
+            (K&#253;, ghi r&#245; h&#7885; t&#234;n)
+            <strong th:text="${hoTenGiangVien}"></strong>
+        </div>
+    </div>
+</div>
+</body>
+</html>

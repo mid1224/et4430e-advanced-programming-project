@@ -1,264 +1,171 @@
-const teacherIdInput = document.getElementById("teacherId");
-const courseSelect = document.getElementById("courseSelect");
+﻿const monHocSelect = document.getElementById("monHocSelect");
+const luuBangDiemBtn = document.getElementById("luuBangDiemBtn");
+const nopPhieuBtn = document.getElementById("nopPhieuBtn");
+const xemPhieuBtn = document.getElementById("xemPhieuBtn");
+const dangXuatBtn = document.getElementById("dangXuatBtn");
+const thongTinMonHoc = document.getElementById("thongTinMonHoc");
+const bangDiemBody = document.getElementById("bangDiemBody");
+const toast = document.getElementById("toast");
 
-const classesTableBody = document.getElementById("classesTableBody");
-const coursesTableBody = document.getElementById("coursesTableBody");
-const scoresTableBody = document.getElementById("scoresTableBody");
-const eligibilityTableBody = document.getElementById("eligibilityTableBody");
-const finalResultTableBody = document.getElementById("finalResultTableBody");
-const bm03SubmittedAt = document.getElementById("bm03SubmittedAt");
+let danhSachMonHoc = [];
+let duLieuBangDiem = [];
 
-const scoreForm = document.getElementById("scoreForm");
-const studentIdInput = document.getElementById("studentId");
-const regularScoreInput = document.getElementById("regularScore");
-const periodicScoreInput = document.getElementById("periodicScore");
-const examForm = document.getElementById("examForm");
-const examStudentIdInput = document.getElementById("examStudentId");
-const examScoreInput = document.getElementById("examScore");
-let editingStudentId = null;
-
-function teacherId() {
-    return Number(teacherIdInput.value);
+function escapeThuocTinh(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
 }
 
-function selectedCourseId() {
-    return Number(courseSelect.value);
+function hienToast(noiDung, thanhCong) {
+    toast.textContent = noiDung;
+    toast.className = thanhCong ? "toast show success" : "toast show error";
+    setTimeout(() => {
+        toast.className = "toast";
+    }, 2200);
 }
 
-function setMessage(text) {
-    if (text) {
-        alert(text);
-    }
-}
-
-async function request(url, options = {}) {
+async function goiApi(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
-    const body = isJson ? await res.json() : await res.text();
+    const data = isJson ? await res.json() : null;
 
     if (!res.ok) {
-        const msg = body && body.message ? body.message : `${res.status} ${res.statusText}`;
-        throw new Error(msg);
+        const thongBao = data && data.thongBao ? data.thongBao : "C\u00f3 l\u1ed7i x\u1ea3y ra";
+        throw new Error(thongBao);
     }
-    return body;
-}
-
-function renderClasses(classes) {
-    classesTableBody.innerHTML = classes.map(c => `
-        <tr>
-            <td>${c.id}</td>
-            <td>${c.name}</td>
-        </tr>
-    `).join("");
-}
-
-function renderCourses(courses) {
-    coursesTableBody.innerHTML = courses.map(c => `
-        <tr>
-            <td>${c.id}</td>
-            <td>${c.name}</td>
-            <td>${c.credits}</td>
-        </tr>
-    `).join("");
-
-    courseSelect.innerHTML = courses.map(c => `<option value="${c.id}">${c.id} - ${c.name}</option>`).join("");
-}
-
-function renderScores(scores) {
-    scoresTableBody.innerHTML = scores.map(s => `
-        <tr>
-            <td>${s.studentName} (#${s.studentId})</td>
-            <td>${s.className}</td>
-            <td>${s.regularScore}</td>
-            <td>${s.periodicScore}</td>
-            <td>${s.averageScore}</td>
-            <td>${s.examScore ?? ""}</td>
-            <td>${s.finalScore ?? ""}</td>
-            <td>${s.finalized}</td>
-            <td>
-                <button class="secondary" type="button" onclick="fillScoreForm(${s.studentId}, ${s.regularScore}, ${s.periodicScore})">Edit</button>
-                <button type="button" onclick="fillExamForm(${s.studentId})">Set Exam</button>
-            </td>
-        </tr>
-    `).join("");
-}
-
-function renderEligibility(items) {
-    eligibilityTableBody.innerHTML = items.map(i => `
-        <tr>
-            <td>${i.studentId}</td>
-            <td>${i.studentName}</td>
-            <td>${i.averageScore}</td>
-            <td>${i.eligible ? "Eligible" : "Not eligible"}</td>
-        </tr>
-    `).join("");
-}
-
-function renderFinalResults(items) {
-    finalResultTableBody.innerHTML = items.map(i => `
-        <tr>
-            <td>${i.studentId}</td>
-            <td>${i.studentName}</td>
-            <td>${i.finalScore}</td>
-            <td>${i.gradeLetter}</td>
-            <td>${i.grade4Scale}</td>
-        </tr>
-    `).join("");
-}
-
-function renderForms(items) {
-    const submittedDates = items
-        .map(i => i.submittedAt)
-        .filter(v => !!v)
-        .sort();
-
-    const latestSubmittedAt = submittedDates.length > 0 ? submittedDates[submittedDates.length - 1] : null;
-    bm03SubmittedAt.textContent = `Submission date: ${latestSubmittedAt ?? "N/A"}`;
-}
-
-async function loadTeacherData() {
-    try {
-        const id = teacherId();
-        if (!id) throw new Error("Teacher ID is required");
-
-        const classes = await request(`/classes/${id}`);
-        const courses = await request(`/courses/${id}`);
-        renderClasses(classes);
-        renderCourses(courses);
-
-        if (courses.length > 0) {
-            await loadCourseData();
-        } else {
-            scoresTableBody.innerHTML = "";
-            eligibilityTableBody.innerHTML = "";
-            finalResultTableBody.innerHTML = "";
-            bm03SubmittedAt.textContent = "Submission date: N/A";
-        }
-    } catch (e) {
-        setMessage(e.message);
+    if (data && data.thanhCong === false) {
+        throw new Error(data.thongBao || "C\u00f3 l\u1ed7i x\u1ea3y ra");
     }
+    return data;
 }
 
-async function loadCourseData() {
-    try {
-        const tId = teacherId();
-        const cId = selectedCourseId();
-        if (!cId) throw new Error("Select a class first");
-
-        const [scores, eligibility, finalResults, forms] = await Promise.all([
-            request(`/scores/course/${cId}?teacherId=${tId}`),
-            request(`/eligibility/${cId}?teacherId=${tId}`),
-            request(`/final-result/${cId}?teacherId=${tId}`),
-            request(`/result-form/${cId}?teacherId=${tId}`)
-        ]);
-
-        renderScores(scores);
-        renderEligibility(eligibility);
-        renderFinalResults(finalResults);
-        renderForms(forms);
-    } catch (e) {
-        setMessage(e.message);
-    }
+function monHocDangChon() {
+    return Number(monHocSelect.value);
 }
 
-window.fillScoreForm = function (studentId, regularScore, periodicScore) {
-    editingStudentId = studentId;
-    studentIdInput.value = studentId;
-    regularScoreInput.value = regularScore;
-    periodicScoreInput.value = periodicScore;
-};
+function veDanhSachMonHoc() {
+    monHocSelect.innerHTML = danhSachMonHoc
+        .map(monHoc => `<option value="${monHoc.id}">${monHoc.maMH} - ${monHoc.tenMonHoc}</option>`)
+        .join("");
+}
 
-window.fillExamForm = function (studentId) {
-    examStudentIdInput.value = studentId;
-};
-
-scoreForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-        const payload = {
-            studentId: Number(studentIdInput.value),
-            courseId: selectedCourseId(),
-            regularScore: Number(regularScoreInput.value),
-            periodicScore: Number(periodicScoreInput.value)
-        };
-        const wasEditing = editingStudentId !== null;
-        if (wasEditing) {
-            await request(`/scores/student/${editingStudentId}?teacherId=${teacherId()}&courseId=${selectedCourseId()}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-        } else {
-            await request(`/scores?teacherId=${teacherId()}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-        }
-        scoreForm.reset();
-        editingStudentId = null;
-        await loadCourseData();
-        setMessage(wasEditing ? `Updated score for student ${payload.studentId}` : "Created score");
-    } catch (e) {
-        setMessage(e.message);
-    }
-});
-
-examForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-        const payload = {
-            studentId: Number(examStudentIdInput.value),
-            courseId: selectedCourseId(),
-            examScore: Number(examScoreInput.value)
-        };
-        await request(`/exam-score?teacherId=${teacherId()}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        examForm.reset();
-        await loadCourseData();
-        setMessage(`Finalized score for student ${payload.studentId}`);
-    } catch (e) {
-        setMessage(e.message);
-    }
-});
-
-document.getElementById("loadTeacherBtn").addEventListener("click", loadTeacherData);
-document.getElementById("loadCourseBtn").addEventListener("click", loadCourseData);
-document.getElementById("openBm03Btn").addEventListener("click", openBm03Form);
-document.getElementById("submitBm03ClassBtn").addEventListener("click", submitBm03ForClass);
-document.getElementById("clearScoreBtn").addEventListener("click", () => {
-    scoreForm.reset();
-    editingStudentId = null;
-    setMessage("Score form cleared");
-});
-
-function openBm03Form() {
-    const cId = selectedCourseId();
-    if (!cId) {
-        setMessage("Select a class first");
+function veThongTinMonHoc() {
+    const monHoc = danhSachMonHoc.find(item => item.id === monHocDangChon());
+    if (!monHoc) {
+        thongTinMonHoc.textContent = "";
         return;
     }
-    const url = `/forms/bm03/${cId}?teacherId=${teacherId()}&classId=${cId}`;
-    window.open(url, "_blank");
+    thongTinMonHoc.textContent = `H\u1ecdc k\u1ef3: ${monHoc.hocKy} | N\u0103m h\u1ecdc: ${monHoc.namHoc}`;
 }
 
-async function submitBm03ForClass() {
-    try {
-        const cId = selectedCourseId();
-        if (!cId) {
-            throw new Error("Select class before submitting BM03");
-        }
-        const response = await request(`/result-form/submit/class/${cId}?teacherId=${teacherId()}&courseId=${cId}`, {
-            method: "POST"
-        });
-        await loadCourseData();
-        setMessage(response.message || `Submitted BM03 for class ${cId}`);
-    } catch (e) {
-        setMessage(e.message);
+function veBangDiem() {
+    bangDiemBody.innerHTML = duLieuBangDiem.map((dong, index) => {
+        const diemTX = dong.diemKTThuongXuyen ?? "";
+        const diemDK = dong.diemKTDinhKy ?? "";
+        const diemKTKetThuc = dong.diemKTKetThuc ?? "";
+        const ghiChu = escapeThuocTinh(dong.ghiChu ?? "");
+
+        return `
+        <tr>
+            <td class="center">${index + 1}</td>
+            <td class="center">${dong.mssv}</td>
+            <td>${dong.hoTen}</td>
+            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemTX}"></td>
+            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemDK}"></td>
+            <td class="center">${dong.diemTBC ?? ""}</td>
+            <td class="center">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n")}</td>
+            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemKTKetThuc}"></td>
+            <td class="center">${dong.diemTongKet ?? ""}</td>
+            <td class="center">${dong.diemChu ?? ""}</td>
+            <td class="center">${dong.diemHe4 ?? ""}</td>
+            <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}"></td>
+        </tr>`;
+    }).join("");
+}
+
+function gomDuLieuNhap() {
+    return duLieuBangDiem.map(dong => {
+        const layGiaTri = (field) => {
+            const input = document.querySelector(`input[data-field='${field}'][data-hocsinhid='${dong.hocSinhId}']`);
+            return input && input.value !== "" ? Number(input.value) : null;
+        };
+
+        return {
+            hocSinhId: dong.hocSinhId,
+            diemKTThuongXuyen: layGiaTri("diemKTThuongXuyen"),
+            diemKTDinhKy: layGiaTri("diemKTDinhKy"),
+            diemKTKetThuc: layGiaTri("diemKTKetThuc"),
+            ghiChu: (() => {
+                const input = document.querySelector(`input[data-field='ghiChu'][data-hocsinhid='${dong.hocSinhId}']`);
+                return input ? input.value : null;
+            })()
+        };
+    });
+}
+
+async function taiMonHoc() {
+    danhSachMonHoc = await goiApi("/api/mon-hoc");
+    if (danhSachMonHoc.length === 0) {
+        hienToast("B\u1ea1n ch\u01b0a \u0111\u01b0\u1ee3c ph\u00e2n c\u00f4ng m\u00f4n h\u1ecdc", false);
+        return;
     }
+    veDanhSachMonHoc();
+    veThongTinMonHoc();
+    await taiBangDiem();
 }
 
-loadTeacherData();
+async function taiBangDiem() {
+    const monHocId = monHocDangChon();
+    if (!monHocId) {
+        hienToast("Vui l\u00f2ng ch\u1ecdn m\u00f4n h\u1ecdc", false);
+        return;
+    }
+    duLieuBangDiem = await goiApi(`/api/bang-diem/${monHocId}`);
+    veThongTinMonHoc();
+    veBangDiem();
+}
+
+async function luuBangDiem() {
+    const monHocId = monHocDangChon();
+    const danhSachDiem = gomDuLieuNhap();
+
+    const ketQua = await goiApi("/api/bang-diem/luu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ monHocId, danhSachDiem })
+    });
+
+    await taiBangDiem();
+    hienToast(ketQua.thongBao, true);
+}
+
+async function nopPhieu() {
+    const monHocId = monHocDangChon();
+    const ketQua = await goiApi(`/api/phieu-bm03/nop/${monHocId}`, { method: "POST" });
+    await taiBangDiem();
+    hienToast(ketQua.thongBao, true);
+}
+
+function xemPhieu() {
+    const monHocId = monHocDangChon();
+    if (!monHocId) {
+        hienToast("Vui l\u00f2ng ch\u1ecdn m\u00f4n h\u1ecdc", false);
+        return;
+    }
+    window.open(`/phieu-bm03/${monHocId}`, "_blank");
+}
+
+async function dangXuat() {
+    await goiApi("/dang-xuat", { method: "POST" });
+    window.location.href = "/dang-nhap";
+}
+
+luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));
+nopPhieuBtn.addEventListener("click", () => nopPhieu().catch(err => hienToast(err.message, false)));
+xemPhieuBtn.addEventListener("click", xemPhieu);
+dangXuatBtn.addEventListener("click", () => dangXuat().catch(err => hienToast(err.message, false)));
+monHocSelect.addEventListener("change", () => taiBangDiem().catch(err => hienToast(err.message, false)));
+
+taiMonHoc().catch(err => hienToast(err.message, false));

@@ -1,70 +1,69 @@
-CREATE DATABASE IF NOT EXISTS student_score_management;
+﻿CREATE DATABASE IF NOT EXISTS student_score_management;
 USE student_score_management;
 
-CREATE TABLE IF NOT EXISTS student_classes (
+CREATE TABLE IF NOT EXISTS lop_hoc (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL UNIQUE
+    ten_lop VARCHAR(100) NOT NULL UNIQUE,
+    khoa VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS hoc_sinh (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(120) NOT NULL,
-    class_id BIGINT NOT NULL,
-    CONSTRAINT fk_students_class FOREIGN KEY (class_id) REFERENCES student_classes(id)
+    mssv VARCHAR(20) NOT NULL UNIQUE,
+    ho_ten VARCHAR(120) NOT NULL,
+    lop_hoc_id BIGINT NOT NULL,
+    CONSTRAINT fk_hoc_sinh_lop FOREIGN KEY (lop_hoc_id) REFERENCES lop_hoc(id)
 );
 
-CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE IF NOT EXISTS mon_hoc (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(120) NOT NULL UNIQUE,
-    credits INT NOT NULL,
-    semester INT NOT NULL DEFAULT 1,
-    class_index INT NOT NULL DEFAULT 1
+    ma_mh VARCHAR(30) NOT NULL UNIQUE,
+    ten_mon_hoc VARCHAR(150) NOT NULL,
+    so_tin_chi INT NOT NULL,
+    hoc_ky INT NOT NULL,
+    nam_hoc VARCHAR(20) NOT NULL,
+    hinh_thuc_thi_ket_thuc VARCHAR(100) NOT NULL,
+    lan_thi_thu INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS teacher_course_classes (
+CREATE TABLE IF NOT EXISTS phan_cong_giang_day (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    teacher_id BIGINT NOT NULL,
-    course_id BIGINT NOT NULL,
-    class_id BIGINT NOT NULL,
-    CONSTRAINT uq_teacher_course_class UNIQUE (teacher_id, course_id, class_id),
-    CONSTRAINT fk_tcc_course FOREIGN KEY (course_id) REFERENCES courses(id),
-    CONSTRAINT fk_tcc_class FOREIGN KEY (class_id) REFERENCES student_classes(id)
+    ma_giang_vien BIGINT NOT NULL,
+    mon_hoc_id BIGINT NOT NULL,
+    lop_hoc_id BIGINT NOT NULL,
+    CONSTRAINT uq_phan_cong UNIQUE (ma_giang_vien, mon_hoc_id, lop_hoc_id),
+    CONSTRAINT fk_phan_cong_mon FOREIGN KEY (mon_hoc_id) REFERENCES mon_hoc(id),
+    CONSTRAINT fk_phan_cong_lop FOREIGN KEY (lop_hoc_id) REFERENCES lop_hoc(id)
 );
 
-CREATE TABLE IF NOT EXISTS scores (
+CREATE TABLE IF NOT EXISTS bang_diem (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
-    course_id BIGINT NOT NULL,
-    regular_score DECIMAL(4,2) NOT NULL,
-    periodic_score DECIMAL(4,2) NOT NULL,
-    exam_score DECIMAL(4,2) NULL,
-    average_score DECIMAL(4,2) NOT NULL,
-    final_score DECIMAL(4,2) NULL,
-    finalized BIT(1) NOT NULL DEFAULT 0,
-    CONSTRAINT uq_student_course_score UNIQUE (student_id, course_id),
-    CONSTRAINT fk_scores_student FOREIGN KEY (student_id) REFERENCES students(id),
-    CONSTRAINT fk_scores_course FOREIGN KEY (course_id) REFERENCES courses(id)
+    hoc_sinh_id BIGINT NOT NULL,
+    mon_hoc_id BIGINT NOT NULL,
+    diem_kt_thuong_xuyen DOUBLE NOT NULL,
+    diem_kt_dinh_ky DOUBLE NOT NULL,
+    diem_tbc DOUBLE NOT NULL,
+    trang_thai_du_thi BIT(1) NOT NULL,
+    diem_kt_ket_thuc DOUBLE NULL,
+    diem_tong_ket DOUBLE NULL,
+    diem_chu VARCHAR(2) NULL,
+    diem_he_4 DOUBLE NULL,
+    ghi_chu VARCHAR(255) NULL,
+    da_nop_phieu BIT(1) NOT NULL DEFAULT 0,
+    ngay_nop_phieu DATE NULL,
+    CONSTRAINT uq_bang_diem UNIQUE (hoc_sinh_id, mon_hoc_id),
+    CONSTRAINT fk_bang_diem_hoc_sinh FOREIGN KEY (hoc_sinh_id) REFERENCES hoc_sinh(id),
+    CONSTRAINT fk_bang_diem_mon FOREIGN KEY (mon_hoc_id) REFERENCES mon_hoc(id)
 );
 
-CREATE TABLE IF NOT EXISTS result_forms (
+CREATE TABLE IF NOT EXISTS tai_khoan_giang_vien (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
-    course_id BIGINT NOT NULL,
-    score_id BIGINT NOT NULL,
-    form_code VARCHAR(40) NOT NULL DEFAULT 'BM/QLD/DTNCKH/03',
-    eligibility_reviewed BIT(1) NOT NULL DEFAULT 0,
-    exam_score_recorded BIT(1) NOT NULL DEFAULT 0,
-    submitted_to_training_office BIT(1) NOT NULL DEFAULT 0,
-    submitted_at DATETIME NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT uq_result_form_student_course UNIQUE (student_id, course_id),
-    CONSTRAINT uq_result_form_score UNIQUE (score_id),
-    CONSTRAINT fk_result_form_student FOREIGN KEY (student_id) REFERENCES students(id),
-    CONSTRAINT fk_result_form_course FOREIGN KEY (course_id) REFERENCES courses(id),
-    CONSTRAINT fk_result_form_score FOREIGN KEY (score_id) REFERENCES scores(id)
+    ten_dang_nhap VARCHAR(50) NOT NULL UNIQUE,
+    mat_khau VARCHAR(120) NOT NULL,
+    ma_giang_vien BIGINT NOT NULL UNIQUE,
+    ho_ten VARCHAR(120) NOT NULL
 );
 
-CREATE INDEX idx_scores_course ON scores(course_id);
-CREATE INDEX idx_result_forms_course ON result_forms(course_id);
-CREATE INDEX idx_tcc_teacher_course ON teacher_course_classes(teacher_id, course_id);
+CREATE INDEX idx_bang_diem_mon ON bang_diem(mon_hoc_id);
+CREATE INDEX idx_phan_cong ON phan_cong_giang_day(ma_giang_vien, mon_hoc_id);
+

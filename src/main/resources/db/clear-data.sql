@@ -1,0 +1,1 @@
+DROP database student_score_management
