@@ -1,15 +1,4 @@
 # Quan Ly Diem Hoc Tap (Spring Boot MVC)
-
-Du an da duoc refactor theo huong don gian, de trinh bay cho do an nam 3:
-- Kien truc MVC ro rang
-- Dung `Double` cho tat ca truong diem
-- Danh sach hoc sinh tai tu CSDL, giao vien chi nhap diem
-- Rule bat buoc: khong du dieu kien du thi -> `DiemThiKetThuc = 0`
-
-## Tai khoan dang nhap mau
-- Ten dang nhap: `gv01`
-- Mat khau: `123456`
-
 ## Luong su dung
 1. Dang nhap giao vien.
 2. Chon MonHoc/MoDun da phan cong.
