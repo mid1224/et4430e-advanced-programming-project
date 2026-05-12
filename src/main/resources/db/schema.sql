@@ -1,4 +1,4 @@
-﻿CREATE DATABASE IF NOT EXISTS student_score_management;
+CREATE DATABASE IF NOT EXISTS student_score_management;
 USE student_score_management;
 
 CREATE TABLE IF NOT EXISTS lop_hoc (

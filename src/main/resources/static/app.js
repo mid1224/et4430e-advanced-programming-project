@@ -10,6 +10,62 @@ const toast = document.getElementById("toast");
 let danhSachMonHoc = [];
 let duLieuBangDiem = [];
 
+function lamTronHaiChuSo(value) {
+    return Math.round(value * 100) / 100;
+}
+
+function tinhDiemTBC(diemTX, diemDK) {
+    if (diemTX == null || diemDK == null) {
+        return null;
+    }
+    return lamTronHaiChuSo((diemTX + diemDK * 2) / 3);
+}
+
+function tinhTrangThaiDuThi(diemTBC) {
+    if (diemTBC == null) {
+        return null;
+    }
+    return diemTBC >= 4;
+}
+
+function hienThiGiaTriSo(value) {
+    return value == null ? "" : value;
+}
+
+function capNhatDongTinhToan(hocSinhId) {
+    const hang = bangDiemBody.querySelector(`tr[data-hocsinhid='${hocSinhId}']`);
+    if (!hang) {
+        if (window.DEBUG_DIEM) console.debug("capNhatDongTinhToan: hang not found for", hocSinhId);
+        return;
+    }
+
+    const inputDiemTX = hang.querySelector("input[data-field='diemKTThuongXuyen']");
+    const inputDiemDK = hang.querySelector("input[data-field='diemKTDinhKy']");
+    const oDiemTBC = hang.querySelector("[data-view='diemTBC']");
+    const oTrangThaiDuThi = hang.querySelector("[data-view='trangThaiDuThi']");
+
+    const diemTX = inputDiemTX && inputDiemTX.value !== "" ? Number(inputDiemTX.value) : null;
+    const diemDK = inputDiemDK && inputDiemDK.value !== "" ? Number(inputDiemDK.value) : null;
+    const diemTBC = tinhDiemTBC(diemTX, diemDK);
+    const trangThaiDuThi = tinhTrangThaiDuThi(diemTBC);
+
+    // keep in-memory model in sync so other code can rely on it
+    const dongDuLieu = duLieuBangDiem.find(d => String(d.hocSinhId) === String(hocSinhId));
+    if (dongDuLieu) {
+        dongDuLieu.diemTBC = diemTBC;
+        dongDuLieu.trangThaiDuThi = trangThaiDuThi;
+    }
+
+    if (window.DEBUG_DIEM) console.debug('capNhatDongTinhToan', {hocSinhId, diemTX, diemDK, diemTBC, trangThaiDuThi});
+
+    if (oDiemTBC) {
+        oDiemTBC.textContent = hienThiGiaTriSo(diemTBC);
+    }
+    if (oTrangThaiDuThi) {
+        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+    }
+}
+
 function escapeThuocTinh(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -68,14 +124,14 @@ function veBangDiem() {
         const ghiChu = escapeThuocTinh(dong.ghiChu ?? "");
 
         return `
-        <tr>
+        <tr data-hocsinhid="${dong.hocSinhId}">
             <td class="center">${index + 1}</td>
             <td class="center">${dong.mssv}</td>
             <td>${dong.hoTen}</td>
             <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemTX}"></td>
             <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemDK}"></td>
-            <td class="center">${dong.diemTBC ?? ""}</td>
-            <td class="center">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n")}</td>
+            <td class="center" data-view="diemTBC" data-hocsinhid="${dong.hocSinhId}">${dong.diemTBC ?? ""}</td>
+            <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n")}</td>
             <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemKTKetThuc}"></td>
             <td class="center">${dong.diemTongKet ?? ""}</td>
             <td class="center">${dong.diemChu ?? ""}</td>
@@ -83,7 +139,20 @@ function veBangDiem() {
             <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}"></td>
         </tr>`;
     }).join("");
+
+    duLieuBangDiem.forEach(dong => capNhatDongTinhToan(dong.hocSinhId));
 }
+
+bangDiemBody.addEventListener("input", event => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
+    if (input.dataset.field !== "diemKTThuongXuyen" && input.dataset.field !== "diemKTDinhKy") {
+        return;
+    }
+    capNhatDongTinhToan(input.dataset.hocsinhid);
+});
 
 function gomDuLieuNhap() {
     return duLieuBangDiem.map(dong => {

@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/student_score_management?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
+    username: ${DB_USERNAME:root} # Enter your database username here
+    password: ${DB_PASSWORD:} # Enter your database password here
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:

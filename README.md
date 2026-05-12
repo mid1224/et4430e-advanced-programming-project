@@ -1,4 +1,4 @@
-# Quan Ly Diem Hoc Tap (Spring Boot MVC)
+# Quan Ly Diem Hoc Tap
 ## Luong su dung
 1. Dang nhap giao vien.
 2. Chon MonHoc/MoDun da phan cong.
@@ -8,7 +8,7 @@
 6. Bam **Nop phieu BM03** de gan ngay/thang/nam hien tai.
 7. Bam **Xem phieu BM03** de in/doi chieu.
 
-## BM03 fields da bo sung
+## BM03 fields
 - Khoa
 - MaMH
 - Hinh thuc thi ket thuc
