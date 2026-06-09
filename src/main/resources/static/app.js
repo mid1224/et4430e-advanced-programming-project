@@ -62,7 +62,12 @@ function capNhatDongTinhToan(hocSinhId) {
         oDiemTBC.textContent = hienThiGiaTriSo(diemTBC);
     }
     if (oTrangThaiDuThi) {
-        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Ch\u01b0a \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+        if (trangThaiDuThi != null) {
+            oTrangThaiDuThi.style.color = trangThaiDuThi ? "green" : "red";
+        } else {
+            oTrangThaiDuThi.style.color = "";
+        }
     }
 }
 
@@ -128,11 +133,11 @@ function veBangDiem() {
             <td class="center">${index + 1}</td>
             <td class="center">${dong.mssv}</td>
             <td>${dong.hoTen}</td>
-            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemTX}"></td>
-            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemDK}"></td>
+            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}"></td>
+            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}"></td>
             <td class="center" data-view="diemTBC" data-hocsinhid="${dong.hocSinhId}">${dong.diemTBC ?? ""}</td>
             <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n")}</td>
-            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.01" value="${diemKTKetThuc}"></td>
+            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}"></td>
             <td class="center">${dong.diemTongKet ?? ""}</td>
             <td class="center">${dong.diemChu ?? ""}</td>
             <td class="center">${dong.diemHe4 ?? ""}</td>
