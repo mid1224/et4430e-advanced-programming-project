@@ -28,11 +28,33 @@ function tinhTrangThaiDuThi(diemTBC) {
     return diemTBC >= 4;
 }
 
+// Hàm tính điểm tổng kết (giả định 30% quá trình, 70% cuối kỳ)
+function tinhDiemTongKet(diemTBC, diemKT) {
+    if (diemTBC == null || diemKT == null) {
+        return null;
+    }
+    return lamTronHaiChuSo(diemTBC * 0.3 + diemKT * 0.7);
+}
+
+// Hàm quy đổi điểm chữ và hệ 4 theo thang điểm HUST
+function quyDoiDiem(diemTK) {
+    if (diemTK == null) return { diemChu: "", diemHe4: "" };
+    if (diemTK >= 8.5) return { diemChu: "A", diemHe4: 4.0 };
+    if (diemTK >= 8.0) return { diemChu: "B+", diemHe4: 3.5 };
+    if (diemTK >= 7.0) return { diemChu: "B", diemHe4: 3.0 };
+    if (diemTK >= 6.5) return { diemChu: "C+", diemHe4: 2.5 };
+    if (diemTK >= 5.5) return { diemChu: "C", diemHe4: 2.0 };
+    if (diemTK >= 5.0) return { diemChu: "D+", diemHe4: 1.5 };
+    if (diemTK >= 4.0) return { diemChu: "D", diemHe4: 1.0 };
+    return { diemChu: "F", diemHe4: 0.0 };
+}
+
 function hienThiGiaTriSo(value) {
     return value == null ? "" : value;
 }
 
-function capNhatDongTinhToan(hocSinhId) {
+// Thêm tham số danhDauChuaLuu để kiểm soát trạng thái lưu của dòng
+function capNhatDongTinhToan(hocSinhId, danhDauChuaLuu = false) {
     const hang = bangDiemBody.querySelector(`tr[data-hocsinhid='${hocSinhId}']`);
     if (!hang) {
         if (window.DEBUG_DIEM) console.debug("capNhatDongTinhToan: hang not found for", hocSinhId);
@@ -41,32 +63,72 @@ function capNhatDongTinhToan(hocSinhId) {
 
     const inputDiemTX = hang.querySelector("input[data-field='diemKTThuongXuyen']");
     const inputDiemDK = hang.querySelector("input[data-field='diemKTDinhKy']");
+    const inputDiemKT = hang.querySelector("input[data-field='diemKTKetThuc']");
+
     const oDiemTBC = hang.querySelector("[data-view='diemTBC']");
     const oTrangThaiDuThi = hang.querySelector("[data-view='trangThaiDuThi']");
+    const oDiemTongKet = hang.querySelector("[data-view='diemTongKet']");
+    const oDiemChu = hang.querySelector("[data-view='diemChu']");
+    const oDiemHe4 = hang.querySelector("[data-view='diemHe4']");
+    const oTrangThaiLuu = hang.querySelector("[data-view='trangThaiLuu']");
 
     const diemTX = inputDiemTX && inputDiemTX.value !== "" ? Number(inputDiemTX.value) : null;
     const diemDK = inputDiemDK && inputDiemDK.value !== "" ? Number(inputDiemDK.value) : null;
+    const diemKT = inputDiemKT && inputDiemKT.value !== "" ? Number(inputDiemKT.value) : null;
+
     const diemTBC = tinhDiemTBC(diemTX, diemDK);
     const trangThaiDuThi = tinhTrangThaiDuThi(diemTBC);
+    
+    let diemTongKet = null;
+    let diemChu = "";
+    let diemHe4 = "";
 
-    // keep in-memory model in sync so other code can rely on it
+    // Chỉ tính điểm tổng kết nếu đủ điều kiện dự thi
+    if (trangThaiDuThi) {
+        diemTongKet = tinhDiemTongKet(diemTBC, diemKT);
+        const quyDoi = quyDoiDiem(diemTongKet);
+        diemChu = quyDoi.diemChu;
+        diemHe4 = quyDoi.diemHe4;
+    }
+
     const dongDuLieu = duLieuBangDiem.find(d => String(d.hocSinhId) === String(hocSinhId));
     if (dongDuLieu) {
         dongDuLieu.diemTBC = diemTBC;
         dongDuLieu.trangThaiDuThi = trangThaiDuThi;
+        dongDuLieu.diemTongKet = diemTongKet;
+        dongDuLieu.diemChu = diemChu;
+        dongDuLieu.diemHe4 = diemHe4;
+        if (danhDauChuaLuu) {
+            dongDuLieu.thayDoi = true;
+        }
     }
 
-    if (window.DEBUG_DIEM) console.debug('capNhatDongTinhToan', {hocSinhId, diemTX, diemDK, diemTBC, trangThaiDuThi});
-
-    if (oDiemTBC) {
-        oDiemTBC.textContent = hienThiGiaTriSo(diemTBC);
-    }
+    if (oDiemTBC) oDiemTBC.textContent = hienThiGiaTriSo(diemTBC);
+    
     if (oTrangThaiDuThi) {
-        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Ch\u01b0a \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "Đủ điều kiện" : "Không đủ điều kiện");
         if (trangThaiDuThi != null) {
             oTrangThaiDuThi.style.color = trangThaiDuThi ? "green" : "red";
         } else {
             oTrangThaiDuThi.style.color = "";
+        }
+    }
+
+    // Hiển thị điểm ngay lập tức lên UI
+    if (oDiemTongKet) oDiemTongKet.textContent = hienThiGiaTriSo(diemTongKet);
+    if (oDiemChu) oDiemChu.textContent = diemChu;
+    if (oDiemHe4) oDiemHe4.textContent = hienThiGiaTriSo(diemHe4);
+
+    // Cập nhật trạng thái lưu của dòng
+    if (oTrangThaiLuu) {
+        if (dongDuLieu && dongDuLieu.thayDoi) {
+            oTrangThaiLuu.textContent = "Chưa lưu";
+            oTrangThaiLuu.style.color = "#d9534f"; // Đỏ
+            oTrangThaiLuu.style.fontWeight = "bold";
+        } else {
+            oTrangThaiLuu.textContent = "Đã lưu";
+            oTrangThaiLuu.style.color = "#5cb85c"; // Xanh lá
+            oTrangThaiLuu.style.fontWeight = "normal";
         }
     }
 }
@@ -93,11 +155,11 @@ async function goiApi(url, options = {}) {
     const data = isJson ? await res.json() : null;
 
     if (!res.ok) {
-        const thongBao = data && data.thongBao ? data.thongBao : "C\u00f3 l\u1ed7i x\u1ea3y ra";
+        const thongBao = data && data.thongBao ? data.thongBao : "Có lỗi xảy ra";
         throw new Error(thongBao);
     }
     if (data && data.thanhCong === false) {
-        throw new Error(data.thongBao || "C\u00f3 l\u1ed7i x\u1ea3y ra");
+        throw new Error(data.thongBao || "Có lỗi xảy ra");
     }
     return data;
 }
@@ -118,7 +180,7 @@ function veThongTinMonHoc() {
         thongTinMonHoc.textContent = "";
         return;
     }
-    thongTinMonHoc.textContent = `H\u1ecdc k\u1ef3: ${monHoc.hocKy} | N\u0103m h\u1ecdc: ${monHoc.namHoc}`;
+    thongTinMonHoc.textContent = `Học kỳ: ${monHoc.hocKy} | Năm học: ${monHoc.namHoc}`;
 }
 
 function veBangDiem() {
@@ -128,6 +190,7 @@ function veBangDiem() {
         const diemKTKetThuc = dong.diemKTKetThuc ?? "";
         const ghiChu = escapeThuocTinh(dong.ghiChu ?? "");
 
+        // Đã gắn thêm data-view vào các cột điểm tổng kết, điểm chữ, điểm hệ 4 và trạng thái lưu
         return `
         <tr data-hocsinhid="${dong.hocSinhId}">
             <td class="center">${index + 1}</td>
@@ -136,27 +199,29 @@ function veBangDiem() {
             <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}"></td>
             <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}"></td>
             <td class="center" data-view="diemTBC" data-hocsinhid="${dong.hocSinhId}">${dong.diemTBC ?? ""}</td>
-            <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n")}</td>
+            <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "Đủ điều kiện" : "Không đủ điều kiện")}</td>
             <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}"></td>
-            <td class="center">${dong.diemTongKet ?? ""}</td>
-            <td class="center">${dong.diemChu ?? ""}</td>
-            <td class="center">${dong.diemHe4 ?? ""}</td>
+            <td class="center" data-view="diemTongKet" data-hocsinhid="${dong.hocSinhId}">${dong.diemTongKet ?? ""}</td>
+            <td class="center" data-view="diemChu" data-hocsinhid="${dong.hocSinhId}">${dong.diemChu ?? ""}</td>
+            <td class="center" data-view="diemHe4" data-hocsinhid="${dong.hocSinhId}">${dong.diemHe4 ?? ""}</td>
             <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}"></td>
+            <td class="center" data-view="trangThaiLuu" data-hocsinhid="${dong.hocSinhId}">Đã lưu</td>
         </tr>`;
     }).join("");
 
-    duLieuBangDiem.forEach(dong => capNhatDongTinhToan(dong.hocSinhId));
+    // Kích hoạt tính toán ban đầu mà không đánh dấu là chưa lưu
+    duLieuBangDiem.forEach(dong => capNhatDongTinhToan(dong.hocSinhId, false));
 }
 
+// Bắt sự kiện thay đổi trên bất kỳ ô input nào thuộc bảng để cập nhật trạng thái ngay lập tức
 bangDiemBody.addEventListener("input", event => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) {
         return;
     }
-    if (input.dataset.field !== "diemKTThuongXuyen" && input.dataset.field !== "diemKTDinhKy") {
-        return;
-    }
-    capNhatDongTinhToan(input.dataset.hocsinhid);
+    
+    // Nếu có sự kiện nhập liệu xảy ra, truyền true để đánh dấu hàng đã thay đổi (chưa lưu)
+    capNhatDongTinhToan(input.dataset.hocsinhid, true);
 });
 
 function gomDuLieuNhap() {
@@ -182,7 +247,7 @@ function gomDuLieuNhap() {
 async function taiMonHoc() {
     danhSachMonHoc = await goiApi("/api/mon-hoc");
     if (danhSachMonHoc.length === 0) {
-        hienToast("B\u1ea1n ch\u01b0a \u0111\u01b0\u1ee3c ph\u00e2n c\u00f4ng m\u00f4n h\u1ecdc", false);
+        hienToast("Bạn chưa được phân công môn học", false);
         return;
     }
     veDanhSachMonHoc();
@@ -193,7 +258,7 @@ async function taiMonHoc() {
 async function taiBangDiem() {
     const monHocId = monHocDangChon();
     if (!monHocId) {
-        hienToast("Vui l\u00f2ng ch\u1ecdn m\u00f4n h\u1ecdc", false);
+        hienToast("Vui lòng chọn môn học", false);
         return;
     }
     duLieuBangDiem = await goiApi(`/api/bang-diem/${monHocId}`);
@@ -211,6 +276,7 @@ async function luuBangDiem() {
         body: JSON.stringify({ monHocId, danhSachDiem })
     });
 
+    // Khi gọi lại hàm taiBangDiem() danh sách từ máy chủ sẽ được cập nhật, reset lại các cờ thay đổi về "Đã lưu"
     await taiBangDiem();
     hienToast(ketQua.thongBao, true);
 }
@@ -225,7 +291,7 @@ async function nopPhieu() {
 function xemPhieu() {
     const monHocId = monHocDangChon();
     if (!monHocId) {
-        hienToast("Vui l\u00f2ng ch\u1ecdn m\u00f4n h\u1ecdc", false);
+        hienToast("Vui lòng chọn môn học", false);
         return;
     }
     window.open(`/phieu-bm03/${monHocId}`, "_blank");
