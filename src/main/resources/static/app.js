@@ -62,7 +62,12 @@ function capNhatDongTinhToan(hocSinhId) {
         oDiemTBC.textContent = hienThiGiaTriSo(diemTBC);
     }
     if (oTrangThaiDuThi) {
-        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+        oTrangThaiDuThi.textContent = trangThaiDuThi == null ? "" : (trangThaiDuThi ? "\u0110\u1ee7 \u0111i\u1ec1u ki\u1ec7n" : "Ch\u01b0a \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n");
+        if (trangThaiDuThi != null) {
+            oTrangThaiDuThi.style.color = trangThaiDuThi ? "green" : "red";
+        } else {
+            oTrangThaiDuThi.style.color = "";
+        }
     }
 }
 
