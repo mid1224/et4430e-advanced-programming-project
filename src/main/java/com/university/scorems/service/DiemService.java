@@ -10,13 +10,16 @@ import com.university.scorems.model.BangDiem;
 import com.university.scorems.model.HocSinh;
 import com.university.scorems.model.MonHoc;
 import com.university.scorems.model.PhanCongGiangDay;
+import com.university.scorems.model.TaiKhoanGiangVien;
 import com.university.scorems.repository.BangDiemRepository;
 import com.university.scorems.repository.HocSinhRepository;
 import com.university.scorems.repository.PhanCongGiangDayRepository;
+import com.university.scorems.repository.TaiKhoanGiangVienRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -241,6 +244,57 @@ public class DiemService {
             case "D" -> 1.0;
             default -> 0.0;
         };
+    }
+
+    @Transactional(readOnly = true)
+    public PhieuBM03Data layDuLieuPhieuBM03ChoKhoa(Long phanCongId) {
+        PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(phanCongId)
+                .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
+        MonHoc monHoc = phanCong.getMonHoc();
+
+        List<HocSinh> danhSachHocSinh = hocSinhRepository.findByLopHocIdOrderByHoTenAsc(phanCong.getLopHoc().getId());
+        Map<Long, BangDiem> bangDiemMap = new HashMap<>();
+        bangDiemRepository.findByMonHocIdOrderByHocSinhHoTenAsc(monHoc.getId())
+                .forEach(bd -> bangDiemMap.put(bd.getHocSinh().getId(), bd));
+
+        List<DongBangDiem> danhSachDiem = new ArrayList<>();
+        for (HocSinh hocSinh : danhSachHocSinh) {
+            BangDiem bd = bangDiemMap.get(hocSinh.getId());
+            danhSachDiem.add(new DongBangDiem(
+                    hocSinh.getId(),
+                    hocSinh.getMssv(),
+                    hocSinh.getHoTen(),
+                    bd == null ? null : bd.getDiemKTThuongXuyen(),
+                    bd == null ? null : bd.getDiemKTDinhKy(),
+                    bd == null ? null : bd.getDiemTBC(),
+                    bd == null ? null : bd.getTrangThaiDuThi(),
+                    bd == null ? null : bd.getDiemKTKetThuc(),
+                    bd == null ? null : bd.getDiemTongKet(),
+                    bd == null ? null : bd.getDiemChu(),
+                    bd == null ? null : bd.getDiemHe4(),
+                    bd == null ? null : bd.getGhiChu()
+            ));
+        }
+
+        LocalDate ngayLap = bangDiemRepository.findByMonHocIdOrderByHocSinhHoTenAsc(monHoc.getId()).stream()
+                .map(BangDiem::getNgayNopPhieu)
+                .filter(d -> d != null)
+                .findFirst()
+                .orElse(LocalDate.now());
+
+        return new PhieuBM03Data(
+                phanCong.getLopHoc().getKhoa(),
+                phanCong.getLopHoc().getTenLop(),
+                monHoc.getTenMonHoc(),
+                monHoc.getMaMH(),
+                monHoc.getHinhThucThiKetThuc(),
+                monHoc.getHocKy(),
+                monHoc.getNamHoc(),
+                monHoc.getLanThiThu(),
+                monHoc.getSoTinChi(),
+                ngayLap,
+                danhSachDiem
+        );
     }
 }
 

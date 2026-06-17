@@ -2,6 +2,8 @@ package com.university.scorems.controller;
 
 import com.university.scorems.dto.ApiThongBao;
 import com.university.scorems.dto.CapNhatHeSoRequest;
+import com.university.scorems.dto.CapNhatPhanCongRequest;
+import com.university.scorems.dto.DongBangDiem;
 import com.university.scorems.dto.GiangVienTomTat;
 import com.university.scorems.dto.LopHocTomTat;
 import com.university.scorems.dto.MonHocKhoaView;
@@ -10,6 +12,7 @@ import com.university.scorems.dto.PhanCongRequest;
 import com.university.scorems.dto.ThongTinDangNhap;
 import com.university.scorems.exception.LoiNghiepVuException;
 import com.university.scorems.service.KhoaService;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -86,6 +89,21 @@ public class KhoaController {
         return new ApiThongBao(true, "Da xoa phan cong");
     }
 
+    @PutMapping("/api/khoa/phan-cong/{id}")
+    @ResponseBody
+    public ApiThongBao capNhatPhanCongVaHeSo(@PathVariable Long id, @RequestBody CapNhatPhanCongRequest request, HttpSession session) {
+        kiemTraKhoa(session);
+        khoaService.capNhatPhanCongVaHeSo(id, request);
+        return new ApiThongBao(true, "Cap nhat phan cong va he so thanh cong");
+    }
+
+    @GetMapping("/api/khoa/phan-cong/{id}/bang-diem")
+    @ResponseBody
+    public List<DongBangDiem> layBangDiemChoKhoa(@PathVariable Long id, HttpSession session) {
+        kiemTraKhoa(session);
+        return khoaService.layBangDiemChoPhanCong(id);
+    }
+
     @PutMapping("/api/khoa/he-so")
     @ResponseBody
     public ApiThongBao capNhatHeSo(@RequestBody CapNhatHeSoRequest request, HttpSession session) {
@@ -93,6 +111,7 @@ public class KhoaController {
         khoaService.capNhatHeSo(request);
         return new ApiThongBao(true, "Cap nhat he so thanh cong");
     }
+
 
     // ── Helper ────────────────────────────────────────────────────────────────
 

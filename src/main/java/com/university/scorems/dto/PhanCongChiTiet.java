@@ -9,7 +9,12 @@ public class PhanCongChiTiet {
     private Long id;
     private Long maGiangVien;
     private String hoTenGiangVien;
+    private Long monHocId;
     private String tenMonHoc;
     private String maMH;
+    private Long lopHocId;
     private String tenLop;
+    private Double heSoGiuaKy;
+    private Double heSoCuoiKy;
 }
+

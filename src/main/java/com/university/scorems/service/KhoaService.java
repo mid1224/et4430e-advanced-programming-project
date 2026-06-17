@@ -7,9 +7,15 @@ import com.university.scorems.dto.MonHocKhoaView;
 import com.university.scorems.dto.PhanCongChiTiet;
 import com.university.scorems.dto.PhanCongRequest;
 import com.university.scorems.exception.LoiNghiepVuException;
+import com.university.scorems.dto.CapNhatPhanCongRequest;
+import com.university.scorems.dto.DongBangDiem;
+import com.university.scorems.model.BangDiem;
+import com.university.scorems.model.HocSinh;
 import com.university.scorems.model.LopHoc;
 import com.university.scorems.model.MonHoc;
 import com.university.scorems.model.PhanCongGiangDay;
+import com.university.scorems.repository.BangDiemRepository;
+import com.university.scorems.repository.HocSinhRepository;
 import com.university.scorems.repository.LopHocRepository;
 import com.university.scorems.repository.MonHocRepository;
 import com.university.scorems.repository.PhanCongGiangDayRepository;
@@ -19,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +40,8 @@ public class KhoaService {
     private final LopHocRepository lopHocRepository;
     private final TaiKhoanGiangVienRepository taiKhoanGiangVienRepository;
     private final PhanCongGiangDayRepository phanCongGiangDayRepository;
+    private final HocSinhRepository hocSinhRepository;
+    private final BangDiemRepository bangDiemRepository;
 
     @Transactional(readOnly = true)
     public List<MonHocKhoaView> layDanhSachMonHoc() {
@@ -74,14 +83,22 @@ public class KhoaService {
                         .ifPresent(gv -> hoTenMap.put(maGV, gv.getHoTen()))
         );
 
-        return all.stream().map(pc -> new PhanCongChiTiet(
-                pc.getId(),
-                pc.getMaGiangVien(),
-                hoTenMap.getOrDefault(pc.getMaGiangVien(), "Không rõ"),
-                pc.getMonHoc().getTenMonHoc(),
-                pc.getMonHoc().getMaMH(),
-                pc.getLopHoc().getTenLop()
-        )).toList();
+        return all.stream().map(pc -> {
+            Double gk = pc.getMonHoc().getHeSoGiuaKy() != null ? pc.getMonHoc().getHeSoGiuaKy() : 0.4;
+            Double ck = Math.round((1.0 - gk) * 100.0) / 100.0;
+            return new PhanCongChiTiet(
+                    pc.getId(),
+                    pc.getMaGiangVien(),
+                    hoTenMap.getOrDefault(pc.getMaGiangVien(), "Không rõ"),
+                    pc.getMonHoc().getId(),
+                    pc.getMonHoc().getTenMonHoc(),
+                    pc.getMonHoc().getMaMH(),
+                    pc.getLopHoc().getId(),
+                    pc.getLopHoc().getTenLop(),
+                    gk,
+                    ck
+            );
+        }).toList();
     }
 
     @Transactional
@@ -103,6 +120,14 @@ public class KhoaService {
         if (phanCongGiangDayRepository.existsByMaGiangVienAndMonHocIdAndLopHocId(
                 request.getMaGiangVien(), request.getMonHocId(), request.getLopHocId())) {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Giang vien da duoc phan cong mon hoc nay cho lop nay roi");
+        }
+
+        if (request.getHeSoGiuaKy() != null) {
+            if (request.getHeSoGiuaKy() <= 0 || request.getHeSoGiuaKy() >= 1) {
+                throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "He so giua ky phai trong khoang (0, 1), vi du: 0.4");
+            }
+            monHoc.setHeSoGiuaKy(request.getHeSoGiuaKy());
+            monHocRepository.save(monHoc);
         }
 
         PhanCongGiangDay phanCong = new PhanCongGiangDay();
@@ -132,4 +157,57 @@ public class KhoaService {
         }
         phanCongGiangDayRepository.deleteById(phanCongId);
     }
+
+    @Transactional
+    public void capNhatPhanCongVaHeSo(Long id, CapNhatPhanCongRequest request) {
+        PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(id)
+                .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
+
+        if (request.getMaGiangVien() != null) {
+            if (!taiKhoanGiangVienRepository.findByMaGiangVien(request.getMaGiangVien()).isPresent()) {
+                throw new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy giảng viên");
+            }
+            phanCong.setMaGiangVien(request.getMaGiangVien());
+            phanCongGiangDayRepository.save(phanCong);
+        }
+
+        if (request.getHeSoGiuaKy() != null) {
+            if (request.getHeSoGiuaKy() <= 0 || request.getHeSoGiuaKy() >= 1) {
+                throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Hệ số giữa kỳ phải trong khoảng (0, 1)");
+            }
+            MonHoc monHoc = phanCong.getMonHoc();
+            monHoc.setHeSoGiuaKy(request.getHeSoGiuaKy());
+            monHocRepository.save(monHoc);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<DongBangDiem> layBangDiemChoPhanCong(Long phanCongId) {
+        PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(phanCongId)
+                .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
+
+        List<HocSinh> danhSachHocSinh = hocSinhRepository.findByLopHocIdOrderByHoTenAsc(phanCong.getLopHoc().getId());
+        Map<Long, BangDiem> bangDiemMap = new HashMap<>();
+        bangDiemRepository.findByMonHocIdOrderByHocSinhHoTenAsc(phanCong.getMonHoc().getId())
+                .forEach(bd -> bangDiemMap.put(bd.getHocSinh().getId(), bd));
+
+        return danhSachHocSinh.stream().map(hs -> {
+            BangDiem bd = bangDiemMap.get(hs.getId());
+            return new DongBangDiem(
+                    hs.getId(),
+                    hs.getMssv(),
+                    hs.getHoTen(),
+                    bd == null ? null : bd.getDiemKTThuongXuyen(),
+                    bd == null ? null : bd.getDiemKTDinhKy(),
+                    bd == null ? null : bd.getDiemTBC(),
+                    bd == null ? null : bd.getTrangThaiDuThi(),
+                    bd == null ? null : bd.getDiemKTKetThuc(),
+                    bd == null ? null : bd.getDiemTongKet(),
+                    bd == null ? null : bd.getDiemChu(),
+                    bd == null ? null : bd.getDiemHe4(),
+                    bd == null ? null : bd.getGhiChu()
+            );
+        }).toList();
+    }
 }
+

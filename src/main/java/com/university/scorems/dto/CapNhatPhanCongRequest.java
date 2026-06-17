@@ -5,10 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PhanCongRequest {
+public class CapNhatPhanCongRequest {
     private Long maGiangVien;
-    private Long monHocId;
-    private Long lopHocId;
     private Double heSoGiuaKy;
 }
-

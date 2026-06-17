@@ -12,10 +12,27 @@ async function goiApi(url, options = {}) {
     const res = await fetch(url, options);
     const data = await res.json();
     if (!res.ok || (data.thanhCong === false)) {
-        throw new Error(data.thongBao || "C\u00f3 l\u1ed7i x\u1ea3y ra");
+        throw new Error(data.thongBao || "Có lỗi xảy ra");
     }
     return data;
 }
+
+// ── Modals Toggle ────────────────────────────────────────────────────────────
+
+function moModal(id) {
+    document.getElementById(id).classList.add("show");
+}
+
+function dongModal(id) {
+    document.getElementById(id).classList.remove("show");
+}
+
+// Close modal when clicking outside content area
+window.addEventListener("click", (e) => {
+    if (e.target.classList.contains("modal")) {
+        e.target.classList.remove("show");
+    }
+});
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -36,95 +53,108 @@ async function taiDuLieu() {
         ]);
         dienDropdowns();
         hienBangPhanCong();
-        hienBangHeSo();
     } catch (e) {
-        hienToast("Loi tai du lieu: " + e.message, false);
+        hienToast("Lỗi tải dữ liệu: " + e.message, false);
     }
 }
 
 // ── Dropdowns ─────────────────────────────────────────────────────────────────
 
 function dienDropdowns() {
-    const selMon = document.getElementById("selMonHoc");
-    const selGV  = document.getElementById("selGiangVien");
-    const selLop = document.getElementById("selLopHoc");
+    const addLop = document.getElementById("addLopHoc");
+    const addMon = document.getElementById("addMonHoc");
+    const addGV = document.getElementById("addGiangVien");
+    const editGV = document.getElementById("editGiangVien");
 
-    selMon.innerHTML = '<option value="">-- Ch\u1ecdn m\u00f4n h\u1ecdc --</option>' +
-        danhSachMonHoc.map(m => `<option value="${m.id}">${m.maMH} - ${m.tenMonHoc}</option>`).join("");
-
-    selGV.innerHTML = '<option value="">-- Ch\u1ecdn gi\u1ea3ng vi\u00ean --</option>' +
-        danhSachGiangVien.map(g => `<option value="${g.maGiangVien}">${g.hoTen}</option>`).join("");
-
-    selLop.innerHTML = '<option value="">-- Ch\u1ecdn l\u1edbp h\u1ecdc --</option>' +
+    const selectLopHtml = '<option value="">-- Chọn lớp học --</option>' +
         danhSachLopHoc.map(l => `<option value="${l.id}">${l.tenLop} (${l.khoa})</option>`).join("");
+    addLop.innerHTML = selectLopHtml;
+
+    const selectMonHtml = '<option value="">-- Chọn môn học --</option>' +
+        danhSachMonHoc.map(m => `<option value="${m.id}">${m.maMH} - ${m.tenMonHoc}</option>`).join("");
+    addMon.innerHTML = selectMonHtml;
+
+    const selectGVHtml = '<option value="">-- Chọn giảng viên --</option>' +
+        danhSachGiangVien.map(g => `<option value="${g.maGiangVien}">${g.hoTen}</option>`).join("");
+    addGV.innerHTML = selectGVHtml;
+    editGV.innerHTML = selectGVHtml;
 }
 
-// ── Assignment Table ──────────────────────────────────────────────────────────
+// ── Render Assignments Table ───────────────────────────────────────────────
 
 function hienBangPhanCong() {
     const tbody = document.getElementById("bangPhanCongBody");
     if (danhSachPhanCong.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Ch\u01b0a c\u00f3 ph\u00e2n c\u00f4ng n\u00e0o.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Chưa có phân công nào.</td></tr>';
         return;
     }
     tbody.innerHTML = danhSachPhanCong.map((pc, i) => `
         <tr>
             <td class="center">${i + 1}</td>
-            <td>${pc.maMH} - ${pc.tenMonHoc}</td>
+            <td style="font-weight: bold;">${pc.tenLop}</td>
+            <td><strong>${pc.maMH}</strong> - ${pc.tenMonHoc}</td>
             <td>${pc.hoTenGiangVien}</td>
-            <td>${pc.tenLop}</td>
+            <td class="center" style="color: #6b7280; font-weight: 500;">${pc.heSoGiuaKy}</td>
+            <td class="center" style="color: #6b7280; font-weight: 500;">${pc.heSoCuoiKy}</td>
             <td class="center">
-                <button class="btn-danger" onclick="xoaPhanCong(${pc.id})" type="button" style="font-size:12px;height:28px;padding:0 10px;">X\u00f3a</button>
+                <div class="btn-actions-container">
+                    <button class="btn-icon view" title="Xem điểm & Xuất BM03" onclick="moViewModal(${i})">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                    <button class="btn-icon edit" title="Chỉnh sửa" onclick="moEditModal(${i})">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn-icon delete" title="Xóa phân công" onclick="xoaPhanCong(${pc.id})">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join("");
 }
 
-// ── Weight Table ──────────────────────────────────────────────────────────────
+// ── Live Calculation in Modals ──────────────────────────────────────────────
 
-function hienBangHeSo() {
-    const tbody = document.getElementById("bangHeSoBody");
-    if (danhSachMonHoc.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Kh\u00f4ng c\u00f3 m\u00f4n h\u1ecdc n\u00e0o.</td></tr>';
-        return;
-    }
-    tbody.innerHTML = danhSachMonHoc.map((m, i) => `
-        <tr>
-            <td class="center">${i + 1}</td>
-            <td class="center">${m.maMH}</td>
-            <td>${m.tenMonHoc}</td>
-            <td class="center">
-                <input class="weight-input" id="hs_${m.id}" type="number" min="0.01" max="0.99" step="0.01" value="${m.heSoGiuaKy}">
-            </td>
-            <td class="center" id="cuoiky_${m.id}" class="weight-display">${m.heSoCuoiKy}</td>
-            <td class="center">
-                <button class="btn-success" onclick="luuHeSo(${m.id})" type="button" style="font-size:12px;height:28px;padding:0 10px;">L\u01b0u</button>
-            </td>
-        </tr>
-    `).join("");
+function setupLiveWeightCalculation(gkId, ckId) {
+    const gkInput = document.getElementById(gkId);
+    const ckInput = document.getElementById(ckId);
 
-    // Live-update the cuoiky display when user types
-    danhSachMonHoc.forEach(m => {
-        const inp = document.getElementById(`hs_${m.id}`);
-        const cuoiKyCell = document.getElementById(`cuoiky_${m.id}`);
-        inp.addEventListener("input", () => {
-            const v = parseFloat(inp.value);
-            if (!isNaN(v) && v > 0 && v < 1) {
-                cuoiKyCell.textContent = Math.round((1 - v) * 100) / 100;
-            }
-        });
+    gkInput.addEventListener("input", () => {
+        const gk = parseFloat(gkInput.value);
+        if (!isNaN(gk) && gk > 0 && gk < 1) {
+            ckInput.value = (Math.round((1.0 - gk) * 100) / 100).toFixed(2);
+        } else {
+            ckInput.value = "";
+        }
     });
 }
+setupLiveWeightCalculation("addHeSoGK", "addHeSoCK");
+setupLiveWeightCalculation("editHeSoGK", "editHeSoCK");
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// ── Add Class Actions ────────────────────────────────────────────────────────
 
-document.getElementById("btnPhanCong").addEventListener("click", async () => {
-    const monHocId   = document.getElementById("selMonHoc").value;
-    const maGiangVien = document.getElementById("selGiangVien").value;
-    const lopHocId   = document.getElementById("selLopHoc").value;
+document.getElementById("btnMoAddModal").addEventListener("click", () => {
+    document.getElementById("addLopHoc").value = "";
+    document.getElementById("addMonHoc").value = "";
+    document.getElementById("addGiangVien").value = "";
+    document.getElementById("addHeSoGK").value = "0.4";
+    document.getElementById("addHeSoCK").value = "0.6";
+    moModal("addModal");
+});
 
-    if (!monHocId || !maGiangVien || !lopHocId) {
-        hienToast("Vui l\u00f2ng ch\u1ecdn \u0111\u1ee7 m\u00f4n h\u1ecdc, gi\u1ea3ng vi\u00ean v\u00e0 l\u1edbp h\u1ecdc", false);
+document.getElementById("btnSubmitAdd").addEventListener("click", async () => {
+    const lopHocId = document.getElementById("addLopHoc").value;
+    const monHocId = document.getElementById("addMonHoc").value;
+    const maGiangVien = document.getElementById("addGiangVien").value;
+    const heSoGiuaKy = parseFloat(document.getElementById("addHeSoGK").value);
+
+    if (!lopHocId || !monHocId || !maGiangVien) {
+        hienToast("Vui lòng chọn đầy đủ thông tin", false);
+        return;
+    }
+
+    if (isNaN(heSoGiuaKy) || heSoGiuaKy <= 0 || heSoGiuaKy >= 1) {
+        hienToast("Hệ số giữa kỳ phải trong khoảng (0, 1), ví dụ: 0.4", false);
         return;
     }
 
@@ -132,47 +162,117 @@ document.getElementById("btnPhanCong").addEventListener("click", async () => {
         await goiApi("/api/khoa/phan-cong", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ monHocId: +monHocId, maGiangVien: +maGiangVien, lopHocId: +lopHocId })
+            body: JSON.stringify({ lopHocId: +lopHocId, monHocId: +monHocId, maGiangVien: +maGiangVien, heSoGiuaKy })
         });
-        hienToast("Ph\u00e2n c\u00f4ng th\u00e0nh c\u00f4ng!", true);
-        danhSachPhanCong = await goiApi("/api/khoa/phan-cong");
-        hienBangPhanCong();
+        hienToast("Thêm lớp học và phân công thành công!", true);
+        dongModal("addModal");
+        taiDuLieu();
     } catch (e) {
         hienToast(e.message, false);
     }
 });
 
-async function xoaPhanCong(id) {
-    if (!confirm("X\u00e1c nh\u1eadn x\u00f3a ph\u00e2n c\u00f4ng n\u00e0y?")) return;
-    try {
-        await goiApi(`/api/khoa/phan-cong/${id}`, { method: "DELETE" });
-        hienToast("\u0110\u00e3 x\u00f3a ph\u00e2n c\u00f4ng", true);
-        danhSachPhanCong = await goiApi("/api/khoa/phan-cong");
-        hienBangPhanCong();
-    } catch (e) {
-        hienToast(e.message, false);
-    }
+// ── Edit Class Actions ───────────────────────────────────────────────────────
+
+function moEditModal(idx) {
+    const pc = danhSachPhanCong[idx];
+    document.getElementById("editPhanCongId").value = pc.id;
+    document.getElementById("editLopHocText").value = pc.tenLop;
+    document.getElementById("editMonHocText").value = `${pc.maMH} - ${pc.tenMonHoc}`;
+    document.getElementById("editGiangVien").value = pc.maGiangVien;
+    document.getElementById("editHeSoGK").value = pc.heSoGiuaKy;
+    document.getElementById("editHeSoCK").value = pc.heSoCuoiKy;
+    moModal("editModal");
 }
 
-async function luuHeSo(monHocId) {
-    const inp = document.getElementById(`hs_${monHocId}`);
-    const heSoGiuaKy = parseFloat(inp.value);
+document.getElementById("btnSubmitEdit").addEventListener("click", async () => {
+    const id = document.getElementById("editPhanCongId").value;
+    const maGiangVien = document.getElementById("editGiangVien").value;
+    const heSoGiuaKy = parseFloat(document.getElementById("editHeSoGK").value);
+
+    if (!maGiangVien) {
+        hienToast("Vui lòng chọn giảng viên", false);
+        return;
+    }
 
     if (isNaN(heSoGiuaKy) || heSoGiuaKy <= 0 || heSoGiuaKy >= 1) {
-        hienToast("H\u1ec7 s\u1ed1 gi\u1eefa k\u1ef3 ph\u1ea3i trong kho\u1ea3ng (0, 1), v\u00ed d\u1ee5: 0.4", false);
+        hienToast("Hệ số giữa kỳ phải trong khoảng (0, 1), ví dụ: 0.4", false);
         return;
     }
 
     try {
-        await goiApi("/api/khoa/he-so", {
+        await goiApi(`/api/khoa/phan-cong/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ monHocId, heSoGiuaKy })
+            body: JSON.stringify({ maGiangVien: +maGiangVien, heSoGiuaKy })
         });
-        hienToast("C\u1eadp nh\u1eadt h\u1ec7 s\u1ed1 th\u00e0nh c\u00f4ng!", true);
-        // Refresh subject list to get updated values
-        danhSachMonHoc = await goiApi("/api/khoa/mon-hoc");
-        hienBangHeSo();
+        hienToast("Cập nhật phân công và hệ số thành công!", true);
+        dongModal("editModal");
+        taiDuLieu();
+    } catch (e) {
+        hienToast(e.message, false);
+    }
+});
+
+// ── View Score Actions ───────────────────────────────────────────────────────
+
+async function moViewModal(idx) {
+    const pc = danhSachPhanCong[idx];
+    const metaContainer = document.getElementById("viewMetaInfo");
+    metaContainer.innerHTML = `
+        <strong>Lớp học:</strong> ${pc.tenLop}<br>
+        <strong>Môn học:</strong> ${pc.maMH} - ${pc.tenMonHoc}<br>
+        <strong>Giảng viên:</strong> ${pc.hoTenGiangVien} | <strong>Hệ số:</strong> GK ${pc.heSoGiuaKy} / CK ${pc.heSoCuoiKy}
+    `;
+
+    // Bind export button
+    document.getElementById("btnXuatBM03").onclick = () => {
+        window.open(`/phieu-bm03/khoa/${pc.id}`, "_blank");
+    };
+
+    // Load score sheet
+    const tbody = document.getElementById("bangDiemBody");
+    tbody.innerHTML = '<tr><td colspan="11" class="empty-state">Đang tải bảng điểm...</td></tr>';
+    moModal("viewModal");
+
+    try {
+        const scores = await goiApi(`/api/khoa/phan-cong/${pc.id}/bang-diem`);
+        if (scores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="empty-state">Lớp học này chưa có sinh viên hoặc chưa nhập điểm.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = scores.map((s, i) => `
+            <tr>
+                <td class="center">${i + 1}</td>
+                <td class="center" style="font-weight: 500;">${s.mssv}</td>
+                <td>${s.hoTen}</td>
+                <td class="center">${s.diemKTThuongXuyen !== null ? s.diemKTThuongXuyen : ""}</td>
+                <td class="center">${s.diemKTDinhKy !== null ? s.diemKTDinhKy : ""}</td>
+                <td class="center" style="font-weight: 500;">${s.diemTBC !== null ? s.diemTBC : ""}</td>
+                <td class="center">
+                    ${s.trangThaiDuThi === true 
+                        ? '<span class="badge-status success">Đủ ĐK</span>' 
+                        : (s.trangThaiDuThi === false ? '<span class="badge-status error">Hỏng</span>' : "")}
+                </td>
+                <td class="center">${s.diemKTKetThuc !== null ? s.diemKTKetThuc : ""}</td>
+                <td class="center" style="font-weight: bold; color: #1e3a8a;">${s.diemTongKet !== null ? s.diemTongKet : ""}</td>
+                <td class="center" style="font-weight: bold;">${s.diemChu !== null ? s.diemChu : ""}</td>
+                <td>${s.ghiChu !== null ? s.ghiChu : ""}</td>
+            </tr>
+        `).join("");
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="11" class="empty-state" style="color: #b91c1c;">Lỗi tải bảng điểm: ${e.message}</td></tr>`;
+    }
+}
+
+// ── Delete Assignment ────────────────────────────────────────────────────────
+
+async function xoaPhanCong(id) {
+    if (!confirm("Xác nhận xóa phân công giảng dạy này?")) return;
+    try {
+        await goiApi(`/api/khoa/phan-cong/${id}`, { method: "DELETE" });
+        hienToast("Đã xóa phân công", true);
+        taiDuLieu();
     } catch (e) {
         hienToast(e.message, false);
     }
@@ -185,9 +285,10 @@ document.getElementById("dangXuatBtn").addEventListener("click", async () => {
         await fetch("/dang-xuat", { method: "POST" });
         window.location.href = "/dang-nhap";
     } catch (e) {
-        hienToast("L\u1ed7i \u0111\u0103ng xu\u1ea5t", false);
+        hienToast("Lỗi đăng xuất", false);
     }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 taiDuLieu();
+
