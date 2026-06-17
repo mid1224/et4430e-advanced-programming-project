@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>&#272;&#259;ng nh&#7853;p h&#7879; th&#7889;ng</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body class="auth-body">
-<div class="auth-card">
-    <h1>&#272;&#259;ng nh&#7853;p</h1>
-    <p class="muted">Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p - BM03</p>
-    <form id="dangNhapForm" class="auth-form">
-        <label>
-            T&#234;n &#273;&#259;ng nh&#7853;p
-            <input id="tenDangNhap" type="text" required>
-        </label>
-        <label>
-            M&#7853;t kh&#7849;u
-            <input id="matKhau" type="password" required>
-        </label>
-        <button type="submit">&#272;&#259;ng nh&#7853;p</button>
-    </form>
-    <div class="demo-accounts">
-        <p class="demo-title">T&#224;i kho&#7843;n m&#7851;u:</p>
-        <div class="demo-row" onclick="dienTaiKhoan('gv01','123456')">
-            <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
-            <code>gv01</code> / <code>123456</code>
-        </div>
-        <div class="demo-row" onclick="dienTaiKhoan('khoa01','123456')">
-            <span class="demo-badge khoa">Khoa CM</span>
-            <code>khoa01</code> / <code>123456</code>
+    <div class="auth-card">
+        <h1>&#272;&#259;ng nh&#7853;p</h1>
+        <p class="muted">Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p - BM03</p>
+        <form id="dangNhapForm" class="auth-form">
+            <label>
+                T&#234;n &#273;&#259;ng nh&#7853;p
+                <input id="tenDangNhap" type="text" required>
+            </label>
+            <label>
+                M&#7853;t kh&#7849;u
+                <input id="matKhau" type="password" required>
+            </label>
+            <button type="submit">&#272;&#259;ng nh&#7853;p</button>
+        </form>
+        <div class="demo-accounts">
+            <p class="demo-title">T&#224;i kho&#7843;n m&#7851;u (click &#273;&#7875; &#273;i&#7873;n):</p>
+            <div class="demo-row" onclick="dienTaiKhoan('khoa01','123456')">
+                <span class="demo-badge khoa">Khoa CM</span>
+                <code>khoa01</code> (Ph&#242;ng Khoa CM)
+            </div>
+            <div class="demo-row" onclick="dienTaiKhoan('gv01','123456')">
+                <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+                <code>gv01</code> (Nguy&#7877;n V&#259;n Giang)
+            </div>
+            <div class="demo-row" onclick="dienTaiKhoan('gv02','123456')">
+                <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+                <code>gv02</code> (Tr&#7847;n Th&#7883; Tuy&#7871;t)
+            </div>
+            <div class="demo-row" onclick="dienTaiKhoan('gv03','123456')">
+                <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+                <code>gv03</code> (L&#234; Minh H&#249;ng)
+            </div>
+            <div class="demo-row" onclick="dienTaiKhoan('gv04','123456')">
+                <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+                <code>gv04</code> (Ph&#7841;m V&#259;n Phong)
+            </div>
+            <div class="demo-row" onclick="dienTaiKhoan('gv05','123456')">
+                <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+                <code>gv05</code> (Nguy&#7877;n Th&#7883; Th&#7843;o)
+            </div>
         </div>
     </div>
-</div>
-<div id="toast" class="toast"></div>
-<script src="/auth.js"></script>
+    <div id="toast" class="toast"></div>
+    <script src="/auth.js"></script>
 </body>
+
 </html>

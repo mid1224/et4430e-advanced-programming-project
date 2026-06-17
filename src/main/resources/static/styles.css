@@ -147,6 +147,8 @@ td input {
     margin-top: 14px;
     border-top: 1px solid #e5e7eb;
     padding-top: 12px;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .demo-title {
