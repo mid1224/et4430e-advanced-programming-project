@@ -131,14 +131,13 @@ setupLiveWeightCalculation("editHeSoGK", "editHeSoCK");
 document.getElementById("btnMoAddModal").addEventListener("click", () => {
     document.getElementById("addLopHocInput").value = "";
     document.getElementById("addLopHocKhoa").value = "";
+    document.getElementById("addHocKy").value = "";
     document.getElementById("addMonHoc").value = "";
     document.getElementById("addGiangVien").value = "";
     document.getElementById("addHeSoGK").value = "0.4";
     document.getElementById("addHeSoCK").value = "0.6";
-    moModal("addModal");
-});
 
-document.getElementById("btnTuDongTaoLop").addEventListener("click", () => {
+    // Auto-calculate the next class code
     const numericClassCodes = danhSachLopHoc
         .map(l => parseInt(l.tenLop))
         .filter(code => !isNaN(code) && code.toString().length === 6);
@@ -149,22 +148,50 @@ document.getElementById("btnTuDongTaoLop").addEventListener("click", () => {
         nextCode = maxCode + 1;
     }
     
-    document.getElementById("addLopHocInput").value = nextCode;
     const yearStr = nextCode.toString().substring(2, 4);
-    document.getElementById("addLopHocKhoa").value = "K" + yearStr;
+    const nextCohort = "K" + yearStr;
+
+    // Set placeholders
+    document.getElementById("addLopHocInput").placeholder = nextCode;
+    document.getElementById("addLopHocKhoa").placeholder = nextCohort;
+
+    // Auto-calculate default semester placeholder
+    let defaultSem = "2026.1";
+    if (danhSachMonHoc.length > 0) {
+        const sems = danhSachMonHoc.map(m => {
+            if (!m.namHoc) return 20261;
+            const startYear = parseInt(m.namHoc.split('-')[0]);
+            return (isNaN(startYear) ? 2026 : startYear) * 10 + (m.hocKy || 1);
+        });
+        const maxSemVal = Math.max(...sems);
+        const year = Math.floor(maxSemVal / 10);
+        const sem = maxSemVal % 10;
+        defaultSem = `${year}.${sem}`;
+    }
+    document.getElementById("addHocKy").placeholder = defaultSem;
+
+    moModal("addModal");
 });
 
 document.getElementById("btnSubmitAdd").addEventListener("click", async () => {
-    const tenLop = document.getElementById("addLopHocInput").value.trim();
-    const khoa = document.getElementById("addLopHocKhoa").value.trim();
+    let tenLop = document.getElementById("addLopHocInput").value.trim();
+    if (!tenLop) {
+        tenLop = document.getElementById("addLopHocInput").placeholder;
+    }
+
+    let khoa = document.getElementById("addLopHocKhoa").value.trim();
+    if (!khoa) {
+        khoa = document.getElementById("addLopHocKhoa").placeholder;
+    }
+
+    let semVal = document.getElementById("addHocKy").value.trim();
+    if (!semVal) {
+        semVal = document.getElementById("addHocKy").placeholder;
+    }
+
     const monHocId = document.getElementById("addMonHoc").value;
     const maGiangVien = document.getElementById("addGiangVien").value;
     const heSoGiuaKy = parseFloat(document.getElementById("addHeSoGK").value);
-
-    if (!tenLop) {
-        hienToast("Vui lòng nhập mã lớp học", false);
-        return;
-    }
 
     if (!tenLop.match(/^\d{6}$/)) {
         hienToast("Mã lớp học phải là số gồm 6 chữ số", false);
@@ -181,11 +208,21 @@ document.getElementById("btnSubmitAdd").addEventListener("click", async () => {
         return;
     }
 
+    // Parse semester (e.g. 2026.1)
+    const semParts = semVal.split('.');
+    const startYear = parseInt(semParts[0]);
+    const hocKyNum = semParts.length > 1 ? parseInt(semParts[1]) : 1;
+    if (isNaN(startYear) || isNaN(hocKyNum) || hocKyNum < 1 || hocKyNum > 3) {
+         hienToast("Học kỳ không hợp lệ. Ví dụ: 2025.2", false);
+         return;
+    }
+    const namHocStr = `${startYear}-${startYear + 1}`;
+
     try {
         await goiApi("/api/khoa/phan-cong", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tenLop, khoa, monHocId: +monHocId, maGiangVien: +maGiangVien, heSoGiuaKy })
+            body: JSON.stringify({ tenLop, khoa, monHocId: +monHocId, maGiangVien: +maGiangVien, heSoGiuaKy, namHoc: namHocStr, hocKy: hocKyNum })
         });
         hienToast("Thêm lớp học và phân công thành công!", true);
         dongModal("addModal");

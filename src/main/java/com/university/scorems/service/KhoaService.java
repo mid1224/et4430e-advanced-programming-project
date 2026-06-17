@@ -170,11 +170,26 @@ public class KhoaService {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Giang vien da duoc phan cong mon hoc nay cho lop nay roi");
         }
 
+        boolean needSaveMonHoc = false;
         if (request.getHeSoGiuaKy() != null) {
             if (request.getHeSoGiuaKy() <= 0 || request.getHeSoGiuaKy() >= 1) {
                 throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "He so giua ky phai trong khoang (0, 1), vi du: 0.4");
             }
             monHoc.setHeSoGiuaKy(request.getHeSoGiuaKy());
+            needSaveMonHoc = true;
+        }
+
+        if (request.getNamHoc() != null && !request.getNamHoc().trim().isEmpty()) {
+            monHoc.setNamHoc(request.getNamHoc().trim());
+            needSaveMonHoc = true;
+        }
+
+        if (request.getHocKy() != null) {
+            monHoc.setHocKy(request.getHocKy());
+            needSaveMonHoc = true;
+        }
+
+        if (needSaveMonHoc) {
             monHocRepository.save(monHoc);
         }
 

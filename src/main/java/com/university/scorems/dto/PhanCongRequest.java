@@ -11,7 +11,10 @@ public class PhanCongRequest {
     private Long lopHocId;
     private String tenLop;
     private String khoa;
+    private String namHoc;
+    private Integer hocKy;
     private Double heSoGiuaKy;
 }
+
 
 
