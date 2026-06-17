@@ -125,6 +125,7 @@ function setupLiveWeightCalculation(gkId, ckId) {
 }
 setupLiveWeightCalculation("addHeSoGK", "addHeSoCK");
 setupLiveWeightCalculation("editHeSoGK", "editHeSoCK");
+setupLiveWeightCalculation("addMonHocHeSoGK", "addMonHocHeSoCK");
 
 // ── Add Class Actions ────────────────────────────────────────────────────────
 
@@ -171,6 +172,80 @@ document.getElementById("btnMoAddModal").addEventListener("click", () => {
     document.getElementById("addHocKy").placeholder = defaultSem;
 
     moModal("addModal");
+});
+
+document.getElementById("btnMoAddMonHocModal").addEventListener("click", () => {
+    document.getElementById("addMaMHInput").value = "";
+    document.getElementById("addTenMonHocInput").value = "";
+    document.getElementById("addSoTinChiInput").value = "3";
+    document.getElementById("addHinhThucThiInput").value = "Tự luận";
+    document.getElementById("addMonHocHocKy").value = "";
+    document.getElementById("addMonHocLanThi").value = "1";
+    document.getElementById("addMonHocHeSoGK").value = "0.4";
+    document.getElementById("addMonHocHeSoCK").value = "0.6";
+
+    // Auto-calculate default semester placeholder
+    let defaultSem = "2026.1";
+    if (danhSachMonHoc.length > 0) {
+        const sems = danhSachMonHoc.map(m => {
+            if (!m.namHoc) return 20261;
+            const startYear = parseInt(m.namHoc.split('-')[0]);
+            return (isNaN(startYear) ? 2026 : startYear) * 10 + (m.hocKy || 1);
+        });
+        const maxSemVal = Math.max(...sems);
+        const year = Math.floor(maxSemVal / 10);
+        const sem = maxSemVal % 10;
+        defaultSem = `${year}.${sem}`;
+    }
+    document.getElementById("addMonHocHocKy").placeholder = defaultSem;
+
+    moModal("addMonHocModal");
+});
+
+document.getElementById("btnSubmitAddMonHoc").addEventListener("click", async () => {
+    const maMH = document.getElementById("addMaMHInput").value.trim();
+    const tenMonHoc = document.getElementById("addTenMonHocInput").value.trim();
+    const soTinChi = parseInt(document.getElementById("addSoTinChiInput").value);
+    const hinhThucThiKetThuc = document.getElementById("addHinhThucThiInput").value.trim();
+    let semVal = document.getElementById("addMonHocHocKy").value.trim();
+    if (!semVal) {
+        semVal = document.getElementById("addMonHocHocKy").placeholder;
+    }
+    const lanThiThu = parseInt(document.getElementById("addMonHocLanThi").value);
+    const heSoGiuaKy = parseFloat(document.getElementById("addMonHocHeSoGK").value);
+
+    if (!maMH || !tenMonHoc || isNaN(soTinChi) || !hinhThucThiKetThuc || isNaN(lanThiThu) || isNaN(heSoGiuaKy)) {
+        hienToast("Vui lòng nhập đầy đủ thông tin", false);
+        return;
+    }
+
+    if (heSoGiuaKy <= 0 || heSoGiuaKy >= 1) {
+        hienToast("Hệ số giữa kỳ phải trong khoảng (0, 1), ví dụ: 0.4", false);
+        return;
+    }
+
+    // Parse semester (e.g. 2026.1)
+    const semParts = semVal.split('.');
+    const startYear = parseInt(semParts[0]);
+    const hocKy = semParts.length > 1 ? parseInt(semParts[1]) : 1;
+    if (isNaN(startYear) || isNaN(hocKy) || hocKy < 1 || hocKy > 3) {
+         hienToast("Học kỳ không hợp lệ. Ví dụ: 2025.2", false);
+         return;
+    }
+    const namHoc = `${startYear}-${startYear + 1}`;
+
+    try {
+        await goiApi("/api/khoa/mon-hoc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ maMH, tenMonHoc, soTinChi, hinhThucThiKetThuc, hocKy, namHoc, lanThiThu, heSoGiuaKy })
+        });
+        hienToast("Thêm môn học thành công!", true);
+        dongModal("addMonHocModal");
+        taiDuLieu();
+    } catch (e) {
+        hienToast(e.message, false);
+    }
 });
 
 document.getElementById("btnSubmitAdd").addEventListener("click", async () => {

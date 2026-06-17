@@ -7,6 +7,7 @@ import com.university.scorems.dto.DongBangDiem;
 import com.university.scorems.dto.GiangVienTomTat;
 import com.university.scorems.dto.LopHocTomTat;
 import com.university.scorems.dto.MonHocKhoaView;
+import com.university.scorems.dto.MonHocRequest;
 import com.university.scorems.dto.PhanCongChiTiet;
 import com.university.scorems.dto.PhanCongRequest;
 import com.university.scorems.dto.ThongTinDangNhap;
@@ -79,6 +80,14 @@ public class KhoaController {
         kiemTraKhoa(session);
         khoaService.phanCongGiangVien(request);
         return new ApiThongBao(true, "Phan cong thanh cong");
+    }
+
+    @PostMapping("/api/khoa/mon-hoc")
+    @ResponseBody
+    public ApiThongBao taoMonHoc(@RequestBody MonHocRequest request, HttpSession session) {
+        kiemTraKhoa(session);
+        khoaService.taoMonHoc(request);
+        return new ApiThongBao(true, "Tạo môn học thành công");
     }
 
     @DeleteMapping("/api/khoa/phan-cong/{id}")

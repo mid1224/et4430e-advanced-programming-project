@@ -5,6 +5,7 @@ import com.university.scorems.dto.GiangVienTomTat;
 import com.university.scorems.dto.LopHocTomTat;
 import com.university.scorems.dto.MonHocKhoaView;
 import com.university.scorems.dto.PhanCongChiTiet;
+import com.university.scorems.dto.MonHocRequest;
 import com.university.scorems.dto.PhanCongRequest;
 import com.university.scorems.exception.LoiNghiepVuException;
 import com.university.scorems.dto.CapNhatPhanCongRequest;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -271,6 +273,44 @@ public class KhoaService {
                     bd == null ? null : bd.getGhiChu()
             );
         }).toList();
+    }
+
+    @Transactional
+    public void taoMonHoc(MonHocRequest request) {
+        if (request.getMaMH() == null || request.getMaMH().trim().isEmpty() ||
+            request.getTenMonHoc() == null || request.getTenMonHoc().trim().isEmpty() ||
+            request.getSoTinChi() == null || request.getHinhThucThiKetThuc() == null || request.getHinhThucThiKetThuc().trim().isEmpty() ||
+            request.getHocKy() == null || request.getNamHoc() == null || request.getNamHoc().trim().isEmpty()) {
+            throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Thiếu thông tin môn học");
+        }
+
+        String maMH = request.getMaMH().trim();
+        if (monHocRepository.existsByMaMH(maMH)) {
+            throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Mã môn học đã tồn tại");
+        }
+
+        MonHoc monHoc = new MonHoc();
+        monHoc.setMaMH(maMH);
+        monHoc.setTenMonHoc(request.getTenMonHoc().trim());
+        monHoc.setSoTinChi(request.getSoTinChi());
+        monHoc.setHinhThucThiKetThuc(request.getHinhThucThiKetThuc().trim());
+        monHoc.setHocKy(request.getHocKy());
+        monHoc.setNamHoc(request.getNamHoc().trim());
+
+        Integer lanThi = request.getLanThiThu();
+        monHoc.setLanThiThu(lanThi != null ? lanThi : 1);
+
+        Double gk = request.getHeSoGiuaKy();
+        if (gk != null) {
+            if (gk <= 0 || gk >= 1) {
+                throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Hệ số giữa kỳ phải trong khoảng (0, 1)");
+            }
+            monHoc.setHeSoGiuaKy(gk);
+        } else {
+            monHoc.setHeSoGiuaKy(0.4);
+        }
+
+        monHocRepository.save(monHoc);
     }
 }
 
