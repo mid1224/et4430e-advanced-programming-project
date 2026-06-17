@@ -41,4 +41,7 @@ public class MonHoc {
 
     @Column(name = "lan_thi_thu", nullable = false)
     private Integer lanThiThu;
+
+    @Column(name = "he_so_giua_ky", nullable = false)
+    private Double heSoGiuaKy = 0.4;
 }

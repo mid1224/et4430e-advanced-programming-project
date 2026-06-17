@@ -57,8 +57,8 @@ public class DiemApiController {
 
     private Long layMaGiangVien(HttpSession session) {
         ThongTinDangNhap thongTin = (ThongTinDangNhap) session.getAttribute(DangNhapController.SESSION_KEY);
-        if (thongTin == null) {
-            throw new LoiNghiepVuException(HttpStatus.UNAUTHORIZED, "Ban chua dang nhap");
+        if (thongTin == null || !"GIANG_VIEN".equals(thongTin.getVaiTro())) {
+            throw new LoiNghiepVuException(HttpStatus.UNAUTHORIZED, "Ban chua dang nhap hoac khong co quyen");
         }
         return thongTin.getMaGiangVien();
     }

@@ -1,10 +1,9 @@
 package com.university.scorems.controller;
 
-import com.university.scorems.dto.ApiThongBao;
 import com.university.scorems.dto.DangNhapRequest;
+import com.university.scorems.dto.DangNhapResponse;
 import com.university.scorems.dto.ThongTinDangNhap;
 import com.university.scorems.exception.LoiNghiepVuException;
-import com.university.scorems.model.TaiKhoanGiangVien;
 import com.university.scorems.service.DangNhapService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -33,20 +32,20 @@ public class DangNhapController {
 
     @PostMapping("/dang-nhap")
     @ResponseBody
-    public ApiThongBao xuLyDangNhap(@RequestBody DangNhapRequest request, HttpSession session) {
+    public DangNhapResponse xuLyDangNhap(@RequestBody DangNhapRequest request, HttpSession session) {
         if (request.getTenDangNhap() == null || request.getMatKhau() == null) {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Ten dang nhap va mat khau khong duoc trong");
         }
 
-        TaiKhoanGiangVien taiKhoan = dangNhapService.dangNhap(request.getTenDangNhap().trim(), request.getMatKhau());
-        session.setAttribute(SESSION_KEY, new ThongTinDangNhap(taiKhoan.getMaGiangVien(), taiKhoan.getHoTen()));
-        return new ApiThongBao(true, "Dang nhap thanh cong");
+        ThongTinDangNhap thongTin = dangNhapService.dangNhap(request.getTenDangNhap().trim(), request.getMatKhau());
+        session.setAttribute(SESSION_KEY, thongTin);
+        return new DangNhapResponse(true, "Dang nhap thanh cong", thongTin.getVaiTro());
     }
 
     @PostMapping("/dang-xuat")
     @ResponseBody
-    public ApiThongBao dangXuat(HttpSession session) {
+    public DangNhapResponse dangXuat(HttpSession session) {
         session.invalidate();
-        return new ApiThongBao(true, "Da dang xuat");
+        return new DangNhapResponse(true, "Da dang xuat", null);
     }
 }

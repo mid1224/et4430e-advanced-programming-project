@@ -143,6 +143,49 @@ td input {
     font-size: 14px;
 }
 
+.demo-accounts {
+    margin-top: 14px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+}
+
+.demo-title {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.demo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 4px;
+    transition: background 0.15s;
+}
+
+.demo-row:hover {
+    background: #f3f4f6;
+}
+
+.demo-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+    min-width: 62px;
+    text-align: center;
+}
+
+.demo-badge.gv { background: #0f5bd3; }
+.demo-badge.khoa { background: #7c3aed; }
+
 .toast {
     position: fixed;
     right: 16px;

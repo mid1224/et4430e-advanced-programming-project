@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ThongTinDangNhap {
-    private Long maGiangVien;
+    private Long maGiangVien; // null for KHOA role
     private String hoTenGiangVien;
+    private String vaiTro; // "GIANG_VIEN" or "KHOA"
 }

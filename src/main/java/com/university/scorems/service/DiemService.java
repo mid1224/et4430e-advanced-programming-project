@@ -125,7 +125,9 @@ public class DiemService {
             bangDiem.setDiemKTKetThuc(diemKTKetThuc);
 
             if (!duThi || diemKTKetThuc != null) {
-                Double diemTongKet = lamTron(diemTBC * 0.4 + diemKTKetThuc * 0.6);
+                double heSoGiuaKy = monHoc.getHeSoGiuaKy() != null ? monHoc.getHeSoGiuaKy() : 0.4;
+                double heSoCuoiKy = Math.round((1 - heSoGiuaKy) * 100.0) / 100.0;
+                Double diemTongKet = lamTron(diemTBC * heSoGiuaKy + diemKTKetThuc * heSoCuoiKy);
                 bangDiem.setDiemTongKet(diemTongKet);
                 bangDiem.setDiemChu(tinhDiemChu(diemTongKet));
                 bangDiem.setDiemHe4(tinhDiemHe4(bangDiem.getDiemChu()));

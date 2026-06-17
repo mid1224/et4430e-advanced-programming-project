@@ -12,9 +12,9 @@ VALUES (1, '20232349', 'Nguyễn Văn A', 1),
        (4, '20233869', 'Phạm Thị D', 2)
 ON DUPLICATE KEY UPDATE mssv = VALUES(mssv), ho_ten = VALUES(ho_ten), lop_hoc_id = VALUES(lop_hoc_id);
 
-INSERT INTO mon_hoc (id, ma_mh, ten_mon_hoc, so_tin_chi, hoc_ky, nam_hoc, hinh_thuc_thi_ket_thuc, lan_thi_thu)
-VALUES (1, 'AP301', 'Lập trình nâng cao', 3, 1, '2026-2027', 'Tự luận', 1),
-       (2, 'DB302', 'Hệ quản trị cơ sở dữ liệu', 3, 1, '2026-2027', 'Trắc nghiệm', 1)
+INSERT INTO mon_hoc (id, ma_mh, ten_mon_hoc, so_tin_chi, hoc_ky, nam_hoc, hinh_thuc_thi_ket_thuc, lan_thi_thu, he_so_giua_ky)
+VALUES (1, 'AP301', 'Lập trình nâng cao', 3, 1, '2026-2027', 'Tự luận', 1, 0.4),
+       (2, 'DB302', 'Hệ quản trị cơ sở dữ liệu', 3, 1, '2026-2027', 'Trắc nghiệm', 1, 0.4)
 ON DUPLICATE KEY UPDATE
     ma_mh = VALUES(ma_mh),
     ten_mon_hoc = VALUES(ten_mon_hoc),
@@ -38,4 +38,11 @@ ON DUPLICATE KEY UPDATE
     ten_dang_nhap = VALUES(ten_dang_nhap),
     mat_khau = VALUES(mat_khau),
     ma_giang_vien = VALUES(ma_giang_vien),
+    ho_ten = VALUES(ho_ten);
+
+INSERT INTO tai_khoan_khoa (id, ten_dang_nhap, mat_khau, ho_ten)
+VALUES (1, 'khoa01', '123456', 'Phòng Khoa Chuyên Môn')
+ON DUPLICATE KEY UPDATE
+    ten_dang_nhap = VALUES(ten_dang_nhap),
+    mat_khau = VALUES(mat_khau),
     ho_ten = VALUES(ho_ten);

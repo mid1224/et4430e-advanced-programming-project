@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khoa Chuy&#234;n M&#244;n - Qu&#7843;n l&#253;</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .tag-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: #7c3aed;
+            color: #fff;
+            margin-right: 6px;
+        }
+        .weight-display {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .weight-input {
+            width: 70px !important;
+            text-align: center;
+        }
+        .btn-danger {
+            background: #b91c1c;
+        }
+        .btn-success {
+            background: #15803d;
+        }
+        .btn-purple {
+            background: #7c3aed;
+        }
+        .section-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin: -6px 0 12px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .formula-badge {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div>
+        <h1><span class="tag-badge">Khoa CM</span>Qu&#7843;n l&#253; ph&#226;n c&#244;ng &amp; h&#7879; s&#7889; &#273;i&#7875;m</h1>
+        <p class="muted" th:text="${hoTen}"></p>
+    </div>
+    <button id="dangXuatBtn" class="secondary" type="button">&#272;&#259;ng xu&#7845;t</button>
+</header>
+
+<main class="layout">
+
+    <!-- Section 1: Assign Teacher -->
+    <section class="panel" id="phanCongPanel">
+        <h2>Ph&#226;n c&#244;ng gi&#7843;ng d&#7841;y</h2>
+        <p class="section-subtitle">Ch&#7885;n m&#244;n h&#7885;c, gi&#7843;ng vi&#234;n v&#224; l&#7899;p h&#7885;c r&#7891;i b&#7845;m Ph&#226;n c&#244;ng.</p>
+        <div class="row">
+            <select id="selMonHoc"><option value="">-- Ch&#7885;n m&#244;n h&#7885;c --</option></select>
+            <select id="selGiangVien"><option value="">-- Ch&#7885;n gi&#7843;ng vi&#234;n --</option></select>
+            <select id="selLopHoc"><option value="">-- Ch&#7885;n l&#7899;p h&#7885;c --</option></select>
+            <button id="btnPhanCong" class="btn-purple" type="button">Ph&#226;n c&#244;ng</button>
+        </div>
+
+        <h2 style="margin-top:18px; font-size:16px;">Danh s&#225;ch ph&#226;n c&#244;ng hi&#7879;n t&#7841;i</h2>
+        <table id="bangPhanCong">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>M&#244;n h&#7885;c</th>
+                <th>Gi&#7843;ng vi&#234;n</th>
+                <th>L&#7899;p h&#7885;c</th>
+                <th>Thao t&#225;c</th>
+            </tr>
+            </thead>
+            <tbody id="bangPhanCongBody">
+            <tr><td colspan="5" class="empty-state">&#272;ang t&#7843;i d&#7919; li&#7879;u...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Section 2: Score Weights -->
+    <section class="panel" id="heSoPanel">
+        <h2>H&#7879; s&#7889; &#273;i&#7875;m theo m&#244;n h&#7885;c</h2>
+        <p class="section-subtitle">
+            C&#244;ng th&#7913;c: <span class="formula-badge">&#272;i&#7875;m TK = &#272;i&#7875;m TBC &times; H&#7879; s&#7889; gi&#7919;a k&#7923; + &#272;i&#7875;m KT k&#7871;t th&#250;c &times; H&#7879; s&#7889; cu&#7889;i k&#7923;</span>
+        </p>
+        <table id="bangHeSo">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>M&#227; MH</th>
+                <th>T&#234;n m&#244;n h&#7885;c</th>
+                <th>H&#7879; s&#7889; gi&#7919;a k&#7923;</th>
+                <th>H&#7879; s&#7889; cu&#7889;i k&#7923;</th>
+                <th>Thao t&#225;c</th>
+            </tr>
+            </thead>
+            <tbody id="bangHeSoBody">
+            <tr><td colspan="6" class="empty-state">&#272;ang t&#7843;i d&#7919; li&#7879;u...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+<script src="/khoa.js"></script>
+</body>
+</html>
