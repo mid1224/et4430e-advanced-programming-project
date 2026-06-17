@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS mon_hoc (
     hoc_ky INT NOT NULL,
     nam_hoc VARCHAR(20) NOT NULL,
     hinh_thuc_thi_ket_thuc VARCHAR(100) NOT NULL,
-    lan_thi_thu INT NOT NULL
+    lan_thi_thu INT NOT NULL,
+    he_so_giua_ky DOUBLE NOT NULL DEFAULT 0.4
 );
 
 CREATE TABLE IF NOT EXISTS phan_cong_giang_day (
@@ -64,6 +65,12 @@ CREATE TABLE IF NOT EXISTS tai_khoan_giang_vien (
     ho_ten VARCHAR(120) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS tai_khoan_khoa (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    ten_dang_nhap VARCHAR(50) NOT NULL UNIQUE,
+    mat_khau VARCHAR(120) NOT NULL,
+    ho_ten VARCHAR(120) NOT NULL
+);
+
 CREATE INDEX idx_bang_diem_mon ON bang_diem(mon_hoc_id);
 CREATE INDEX idx_phan_cong ON phan_cong_giang_day(ma_giang_vien, mon_hoc_id);
-

@@ -1,4 +1,7 @@
 # Quan Ly Diem Hoc Tap
+## Bo sung Khoa Chuyen Mon
+1. Tao lop hoc, gan giang vien/sinh vien tuong ung
+2. Quan ly toan bo mon hoc lien quan cung voi lop mo ky do
 ## Luong su dung
 1. Dang nhap giao vien.
 2. Chon MonHoc/MoDun da phan cong.

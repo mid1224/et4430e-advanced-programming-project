@@ -18,10 +18,15 @@ async function goiApi(url, options = {}) {
     return data;
 }
 
+function dienTaiKhoan(ten, matKhau) {
+    document.getElementById("tenDangNhap").value = ten;
+    document.getElementById("matKhau").value = matKhau;
+}
+
 dangNhapForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     try {
-        await goiApi("/dang-nhap", {
+        const data = await goiApi("/dang-nhap", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -31,7 +36,11 @@ dangNhapForm.addEventListener("submit", async (event) => {
         });
         hienToast("\u0110\u0103ng nh\u1eadp th\u00e0nh c\u00f4ng", true);
         setTimeout(() => {
-            window.location.href = "/";
+            if (data.vaiTro === "KHOA") {
+                window.location.href = "/khoa";
+            } else {
+                window.location.href = "/";
+            }
         }, 400);
     } catch (e) {
         hienToast(e.message, false);

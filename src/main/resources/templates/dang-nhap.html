@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>&#272;&#259;ng nh&#7853;p gi&#7843;ng vi&#234;n</title>
+    <title>&#272;&#259;ng nh&#7853;p h&#7879; th&#7889;ng</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="auth-body">
 <div class="auth-card">
-    <h1>&#272;&#259;ng nh&#7853;p gi&#7843;ng vi&#234;n</h1>
-    <p class="muted">Nh&#7853;p t&#224;i kho&#7843;n &#273;&#7875; qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p.</p>
+    <h1>&#272;&#259;ng nh&#7853;p</h1>
+    <p class="muted">Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p - BM03</p>
     <form id="dangNhapForm" class="auth-form">
         <label>
             T&#234;n &#273;&#259;ng nh&#7853;p
@@ -21,7 +21,17 @@
         </label>
         <button type="submit">&#272;&#259;ng nh&#7853;p</button>
     </form>
-    <p class="muted">T&#224;i kho&#7843;n m&#7851;u: gv01 / 123456</p>
+    <div class="demo-accounts">
+        <p class="demo-title">T&#224;i kho&#7843;n m&#7851;u:</p>
+        <div class="demo-row" onclick="dienTaiKhoan('gv01','123456')">
+            <span class="demo-badge gv">Gi&#7843;ng Vi&#234;n</span>
+            <code>gv01</code> / <code>123456</code>
+        </div>
+        <div class="demo-row" onclick="dienTaiKhoan('khoa01','123456')">
+            <span class="demo-badge khoa">Khoa CM</span>
+            <code>khoa01</code> / <code>123456</code>
+        </div>
+    </div>
 </div>
 <div id="toast" class="toast"></div>
 <script src="/auth.js"></script>

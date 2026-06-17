@@ -15,6 +15,10 @@ public class TrangController {
         if (thongTin == null) {
             return "redirect:/dang-nhap";
         }
+        // Khoa users who land on / get redirected to their dashboard
+        if ("KHOA".equals(thongTin.getVaiTro())) {
+            return "redirect:/khoa";
+        }
         model.addAttribute("hoTenGiangVien", thongTin.getHoTenGiangVien());
         return "quan-ly-diem";
     }

@@ -10,5 +10,9 @@ public interface PhanCongGiangDayRepository extends JpaRepository<PhanCongGiangD
 
     boolean existsByMaGiangVienAndMonHocId(Long maGiangVien, Long monHocId);
 
+    boolean existsByMaGiangVienAndMonHocIdAndLopHocId(Long maGiangVien, Long monHocId, Long lopHocId);
+
     PhanCongGiangDay findFirstByMaGiangVienAndMonHocId(Long maGiangVien, Long monHocId);
+    List<PhanCongGiangDay> findByLopHocId(Long lopHocId);
 }
+
