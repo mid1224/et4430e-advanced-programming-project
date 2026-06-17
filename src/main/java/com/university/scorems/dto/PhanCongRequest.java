@@ -9,6 +9,9 @@ public class PhanCongRequest {
     private Long maGiangVien;
     private Long monHocId;
     private Long lopHocId;
+    private String tenLop;
+    private String khoa;
     private Double heSoGiuaKy;
 }
+
 

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface LopHocRepository extends JpaRepository<LopHoc, Long> {
     List<LopHoc> findAllByOrderByTenLopAsc();
+    java.util.Optional<LopHoc> findByTenLop(String tenLop);
 }
+

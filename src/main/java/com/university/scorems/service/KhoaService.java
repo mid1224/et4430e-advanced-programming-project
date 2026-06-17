@@ -103,7 +103,8 @@ public class KhoaService {
 
     @Transactional
     public void phanCongGiangVien(PhanCongRequest request) {
-        if (request.getMaGiangVien() == null || request.getMonHocId() == null || request.getLopHocId() == null) {
+        if (request.getMaGiangVien() == null || request.getMonHocId() == null ||
+            (request.getLopHocId() == null && (request.getTenLop() == null || request.getTenLop().trim().isEmpty()))) {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Thieu thong tin phan cong");
         }
 
@@ -114,11 +115,58 @@ public class KhoaService {
         MonHoc monHoc = monHocRepository.findById(request.getMonHocId())
                 .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Khong tim thay mon hoc"));
 
-        LopHoc lopHoc = lopHocRepository.findById(request.getLopHocId())
-                .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Khong tim thay lop hoc"));
+        LopHoc lopHoc = null;
+        if (request.getLopHocId() != null) {
+            lopHoc = lopHocRepository.findById(request.getLopHocId())
+                    .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Khong tim thay lop hoc"));
+        } else {
+            String tenLop = request.getTenLop().trim();
+            if (!tenLop.matches("\\d{6}")) {
+                throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Mã lớp học phải là số gồm 6 chữ số");
+            }
+
+            String khoa = request.getKhoa();
+            if (khoa == null || khoa.trim().isEmpty()) {
+                khoa = "K" + (Integer.parseInt(tenLop.substring(2, 4)));
+            }
+            khoa = khoa.trim();
+
+            Optional<LopHoc> optionalLop = lopHocRepository.findByTenLop(tenLop);
+            if (optionalLop.isPresent()) {
+                LopHoc existingLop = optionalLop.get();
+                List<PhanCongGiangDay> pcList = phanCongGiangDayRepository.findByLopHocId(existingLop.getId());
+                boolean isCollision = false;
+                for (PhanCongGiangDay pc : pcList) {
+                    boolean daNopTieu = bangDiemRepository.findByMonHocIdOrderByHocSinhHoTenAsc(pc.getMonHoc().getId()).stream()
+                            .allMatch(bd -> bd.getDaNopPhieu() != null && bd.getDaNopPhieu());
+                    if (!daNopTieu) {
+                        isCollision = true;
+                        break;
+                    }
+                }
+                if (isCollision) {
+                    throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Lớp học " + tenLop + " đang hoạt động ở học kỳ này. Không thể tạo trùng!");
+                }
+                lopHoc = existingLop;
+            } else {
+                lopHoc = new LopHoc();
+                lopHoc.setTenLop(tenLop);
+                lopHoc.setKhoa(khoa);
+                lopHoc = lopHocRepository.save(lopHoc);
+
+                String[] hoTens = { "Nguyễn Văn Hùng", "Trần Thị Lan", "Lê Minh Triết", "Phạm Hoàng Anh" };
+                for (int i = 0; i < hoTens.length; i++) {
+                    HocSinh hs = new HocSinh();
+                    hs.setLopHoc(lopHoc);
+                    hs.setHoTen(hoTens[i]);
+                    hs.setMssv("20" + tenLop.substring(2, 4) + tenLop.substring(4) + String.format("%03d", i + 1));
+                    hocSinhRepository.save(hs);
+                }
+            }
+        }
 
         if (phanCongGiangDayRepository.existsByMaGiangVienAndMonHocIdAndLopHocId(
-                request.getMaGiangVien(), request.getMonHocId(), request.getLopHocId())) {
+                request.getMaGiangVien(), request.getMonHocId(), lopHoc.getId())) {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Giang vien da duoc phan cong mon hoc nay cho lop nay roi");
         }
 

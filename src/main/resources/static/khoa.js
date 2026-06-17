@@ -61,14 +61,9 @@ async function taiDuLieu() {
 // ── Dropdowns ─────────────────────────────────────────────────────────────────
 
 function dienDropdowns() {
-    const addLop = document.getElementById("addLopHoc");
     const addMon = document.getElementById("addMonHoc");
     const addGV = document.getElementById("addGiangVien");
     const editGV = document.getElementById("editGiangVien");
-
-    const selectLopHtml = '<option value="">-- Chọn lớp học --</option>' +
-        danhSachLopHoc.map(l => `<option value="${l.id}">${l.tenLop} (${l.khoa})</option>`).join("");
-    addLop.innerHTML = selectLopHtml;
 
     const selectMonHtml = '<option value="">-- Chọn môn học --</option>' +
         danhSachMonHoc.map(m => `<option value="${m.id}">${m.maMH} - ${m.tenMonHoc}</option>`).join("");
@@ -134,7 +129,8 @@ setupLiveWeightCalculation("editHeSoGK", "editHeSoCK");
 // ── Add Class Actions ────────────────────────────────────────────────────────
 
 document.getElementById("btnMoAddModal").addEventListener("click", () => {
-    document.getElementById("addLopHoc").value = "";
+    document.getElementById("addLopHocInput").value = "";
+    document.getElementById("addLopHocKhoa").value = "";
     document.getElementById("addMonHoc").value = "";
     document.getElementById("addGiangVien").value = "";
     document.getElementById("addHeSoGK").value = "0.4";
@@ -142,14 +138,41 @@ document.getElementById("btnMoAddModal").addEventListener("click", () => {
     moModal("addModal");
 });
 
+document.getElementById("btnTuDongTaoLop").addEventListener("click", () => {
+    const numericClassCodes = danhSachLopHoc
+        .map(l => parseInt(l.tenLop))
+        .filter(code => !isNaN(code) && code.toString().length === 6);
+    
+    let nextCode = 166831;
+    if (numericClassCodes.length > 0) {
+        const maxCode = Math.max(...numericClassCodes);
+        nextCode = maxCode + 1;
+    }
+    
+    document.getElementById("addLopHocInput").value = nextCode;
+    const yearStr = nextCode.toString().substring(2, 4);
+    document.getElementById("addLopHocKhoa").value = "K" + yearStr;
+});
+
 document.getElementById("btnSubmitAdd").addEventListener("click", async () => {
-    const lopHocId = document.getElementById("addLopHoc").value;
+    const tenLop = document.getElementById("addLopHocInput").value.trim();
+    const khoa = document.getElementById("addLopHocKhoa").value.trim();
     const monHocId = document.getElementById("addMonHoc").value;
     const maGiangVien = document.getElementById("addGiangVien").value;
     const heSoGiuaKy = parseFloat(document.getElementById("addHeSoGK").value);
 
-    if (!lopHocId || !monHocId || !maGiangVien) {
-        hienToast("Vui lòng chọn đầy đủ thông tin", false);
+    if (!tenLop) {
+        hienToast("Vui lòng nhập mã lớp học", false);
+        return;
+    }
+
+    if (!tenLop.match(/^\d{6}$/)) {
+        hienToast("Mã lớp học phải là số gồm 6 chữ số", false);
+        return;
+    }
+
+    if (!monHocId || !maGiangVien) {
+        hienToast("Vui lòng chọn đầy đủ môn học và giảng viên", false);
         return;
     }
 
@@ -162,7 +185,7 @@ document.getElementById("btnSubmitAdd").addEventListener("click", async () => {
         await goiApi("/api/khoa/phan-cong", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lopHocId: +lopHocId, monHocId: +monHocId, maGiangVien: +maGiangVien, heSoGiuaKy })
+            body: JSON.stringify({ tenLop, khoa, monHocId: +monHocId, maGiangVien: +maGiangVien, heSoGiuaKy })
         });
         hienToast("Thêm lớp học và phân công thành công!", true);
         dongModal("addModal");
