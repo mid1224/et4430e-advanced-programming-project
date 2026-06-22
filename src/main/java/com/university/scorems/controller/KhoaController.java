@@ -13,6 +13,7 @@ import com.university.scorems.dto.PhanCongRequest;
 import com.university.scorems.dto.ThongTinDangNhap;
 import com.university.scorems.exception.LoiNghiepVuException;
 import com.university.scorems.service.KhoaService;
+import com.university.scorems.service.DiemService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -34,6 +40,7 @@ import java.util.List;
 public class KhoaController {
 
     private final KhoaService khoaService;
+    private final DiemService diemService;
 
     // ── Page ──────────────────────────────────────────────────────────────────
 
@@ -119,6 +126,21 @@ public class KhoaController {
         kiemTraKhoa(session);
         khoaService.capNhatHeSo(request);
         return new ApiThongBao(true, "Cap nhat he so thanh cong");
+    }
+
+    @PostMapping("/api/khoa/phan-cong/{id}/import-xml")
+    @ResponseBody
+    public ApiThongBao importXmlKhoa(@PathVariable Long id, @RequestParam("file") MultipartFile file, HttpSession session) {
+        kiemTraKhoa(session);
+        int soDong = diemService.importXmlForKhoa(id, file);
+        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ XML.");
+    }
+
+    @GetMapping("/api/khoa/phan-cong/{id}/export-xml")
+    public ResponseEntity<byte[]> exportXmlKhoa(@PathVariable Long id, HttpSession session) {
+        kiemTraKhoa(session);
+        List<DongBangDiem> list = khoaService.layBangDiemChoPhanCong(id);
+        return diemService.exportXmlResponseKhoa(id, list);
     }
 
 
