@@ -11,10 +11,15 @@ import com.university.scorems.service.DiemService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +53,18 @@ public class DiemApiController {
     public ApiThongBao nopPhieu(@PathVariable Long monHocId, HttpSession session) {
         LocalDate ngayNop = diemService.nopPhieuKetQua(layMaGiangVien(session), monHocId);
         return new ApiThongBao(true, "Da nop phieu BM03 ngay " + ngayNop);
+    }
+
+    @PostMapping("/bang-diem/import-xml/{monHocId}")
+    public ApiThongBao importXml(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
+        int soDong = diemService.importXml(layMaGiangVien(session), monHocId, file);
+        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ XML.");
+    }
+
+    @GetMapping("/bang-diem/export-xml/{monHocId}")
+    public ResponseEntity<byte[]> exportXml(@PathVariable Long monHocId, HttpSession session) {
+        Long maGiangVien = layMaGiangVien(session);
+        return diemService.exportXmlResponse(maGiangVien, monHocId);
     }
 
     @GetMapping("/phieu-bm03/{monHocId}")

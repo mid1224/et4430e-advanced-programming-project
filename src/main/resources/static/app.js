@@ -1,4 +1,4 @@
-﻿const monHocSelect = document.getElementById("monHocSelect");
+const monHocSelect = document.getElementById("monHocSelect");
 const luuBangDiemBtn = document.getElementById("luuBangDiemBtn");
 const nopPhieuBtn = document.getElementById("nopPhieuBtn");
 const xemPhieuBtn = document.getElementById("xemPhieuBtn");
@@ -174,13 +174,30 @@ function veDanhSachMonHoc() {
         .join("");
 }
 
-function veThongTinMonHoc() {
+function capNhatStatsLive() {
     const monHoc = danhSachMonHoc.find(item => item.id === monHocDangChon());
-    if (!monHoc) {
-        thongTinMonHoc.textContent = "";
-        return;
-    }
-    thongTinMonHoc.textContent = `Học kỳ: ${monHoc.hocKy} | Năm học: ${monHoc.namHoc}`;
+    if (!monHoc || !duLieuBangDiem) return;
+
+    const total = duLieuBangDiem.length;
+    let missing = 0;
+    
+    duLieuBangDiem.forEach(dong => {
+        const inputTX = document.querySelector(`input[data-field='diemKTThuongXuyen'][data-hocsinhid='${dong.hocSinhId}']`);
+        const inputDK = document.querySelector(`input[data-field='diemKTDinhKy'][data-hocsinhid='${dong.hocSinhId}']`);
+        
+        const txVal = inputTX ? inputTX.value.trim() : "";
+        const dkVal = inputDK ? inputDK.value.trim() : "";
+        
+        if (txVal === "" || dkVal === "") {
+            missing++;
+        }
+    });
+
+    thongTinMonHoc.textContent = `Học kỳ: ${monHoc.hocKy} | Năm học: ${monHoc.namHoc} | Sĩ số: ${total} | Chưa nhập điểm: ${missing}`;
+}
+
+function veThongTinMonHoc() {
+    capNhatStatsLive();
 }
 
 function veBangDiem() {
@@ -222,6 +239,9 @@ bangDiemBody.addEventListener("input", event => {
     
     // Nếu có sự kiện nhập liệu xảy ra, truyền true để đánh dấu hàng đã thay đổi (chưa lưu)
     capNhatDongTinhToan(input.dataset.hocsinhid, true);
+    
+    // Cập nhật lại stats trực tiếp trên UI
+    capNhatStatsLive();
 });
 
 function gomDuLieuNhap() {
@@ -262,8 +282,8 @@ async function taiBangDiem() {
         return;
     }
     duLieuBangDiem = await goiApi(`/api/bang-diem/${monHocId}`);
-    veThongTinMonHoc();
     veBangDiem();
+    veThongTinMonHoc();
 }
 
 async function luuBangDiem() {
@@ -300,6 +320,57 @@ function xemPhieu() {
 async function dangXuat() {
     await goiApi("/dang-xuat", { method: "POST" });
     window.location.href = "/dang-nhap";
+}
+
+// ── Setup ──────────────────────────────────────────────────────────────────
+const importXmlBtn = document.getElementById("importXmlBtn");
+const importXmlInput = document.getElementById("importXmlInput");
+
+if (importXmlBtn && importXmlInput) {
+    importXmlBtn.addEventListener("click", () => {
+        const monHocId = monHocDangChon();
+        if (!monHocId) {
+            hienToast("Vui lòng chọn môn học trước khi import", false);
+            return;
+        }
+        importXmlInput.click();
+    });
+
+    importXmlInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const data = await fetch(`/api/bang-diem/import-xml/${monHocDangChon()}`, {
+                method: "POST",
+                body: formData
+            });
+            const res = await data.json();
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            
+            hienToast(res.thongBao, true);
+            taiBangDiem();
+        } catch (error) {
+            hienToast(error.message, false);
+        } finally {
+            importXmlInput.value = "";
+        }
+    });
+}
+
+const exportXmlBtn = document.getElementById("exportXmlBtn");
+if (exportXmlBtn) {
+    exportXmlBtn.addEventListener("click", () => {
+        const monHocId = monHocDangChon();
+        if (!monHocId) {
+            hienToast("Vui lòng chọn môn học trước khi export", false);
+            return;
+        }
+        window.open(`/api/bang-diem/export-xml/${monHocId}`, "_blank");
+    });
 }
 
 luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));

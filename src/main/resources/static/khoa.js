@@ -365,6 +365,41 @@ async function moViewModal(idx) {
         window.open(`/phieu-bm03/khoa/${pc.id}`, "_blank");
     };
 
+    // Bind import XML button
+    const importInput = document.getElementById("importKhoaXmlInput");
+    const importBtn = document.getElementById("btnImportKhoaXml");
+    
+    importBtn.onclick = () => importInput.click();
+    importInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        try {
+            const data = await fetch(`/api/khoa/phan-cong/${pc.id}/import-xml`, {
+                method: "POST",
+                body: formData
+            });
+            const res = await data.json();
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            
+            hienToast(res.thongBao, true);
+            // Reload view modal to show new scores
+            moViewModal(idx);
+        } catch (error) {
+            hienToast(error.message, false);
+        } finally {
+            importInput.value = "";
+        }
+    };
+
+    // Bind export XML button
+    document.getElementById("btnExportKhoaXml").onclick = () => {
+        window.open(`/api/khoa/phan-cong/${pc.id}/export-xml`, "_blank");
+    };
+
     // Load score sheet
     const tbody = document.getElementById("bangDiemBody");
     tbody.innerHTML = '<tr><td colspan="11" class="empty-state">Đang tải bảng điểm...</td></tr>';
@@ -376,6 +411,9 @@ async function moViewModal(idx) {
             tbody.innerHTML = '<tr><td colspan="11" class="empty-state">Lớp học này chưa có sinh viên hoặc chưa nhập điểm.</td></tr>';
             return;
         }
+        const total = scores.length;
+        const missing = scores.filter(s => s.diemKTThuongXuyen === null || s.diemKTDinhKy === null).length;
+        metaContainer.innerHTML += `<br><strong>Sĩ số:</strong> ${total} | <strong>Chưa nhập điểm:</strong> ${missing}`;
         tbody.innerHTML = scores.map((s, i) => `
             <tr>
                 <td class="center">${i + 1}</td>
