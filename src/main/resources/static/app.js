@@ -292,10 +292,18 @@ async function taiMonHoc() {
 
 async function taiBangDiem() {
     const monHocId = monHocDangChon();
+    const btnLuu = document.getElementById("luuBangDiemBtn");
+    
     if (!monHocId) {
-        hienToast("Vui lòng chọn môn học", false);
+        document.getElementById("bangDiemBody").innerHTML = "";
+        document.getElementById("thongTinMonHoc").textContent = "";
+        if (btnLuu) btnLuu.disabled = true;
         return;
     }
+    
+    if (btnLuu) btnLuu.disabled = false;
+    // Disable inputs while loading
+    const tbody = document.getElementById("bangDiemBody");
     thongTinBangDiem = await goiApi(`/api/bang-diem/${monHocId}?_t=${Date.now()}`);
     
     // Xử lý trường hợp cache trình duyệt trả về mảng cũ hoặc format mới

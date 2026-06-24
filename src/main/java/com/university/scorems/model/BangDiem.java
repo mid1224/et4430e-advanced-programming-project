@@ -35,16 +35,16 @@ public class BangDiem {
     @JoinColumn(name = "mon_hoc_id", nullable = false)
     private MonHoc monHoc;
 
-    @Column(name = "diem_kt_thuong_xuyen", nullable = false)
+    @Column(name = "diem_kt_thuong_xuyen")
     private Double diemKTThuongXuyen;
 
-    @Column(name = "diem_kt_dinh_ky", nullable = false)
+    @Column(name = "diem_kt_dinh_ky")
     private Double diemKTDinhKy;
 
-    @Column(name = "diem_tbc", nullable = false)
+    @Column(name = "diem_tbc")
     private Double diemTBC;
 
-    @Column(name = "trang_thai_du_thi", nullable = false)
+    @Column(name = "trang_thai_du_thi")
     private Boolean trangThaiDuThi;
 
     @Column(name = "diem_kt_ket_thuc")
