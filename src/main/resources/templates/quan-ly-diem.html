@@ -1,69 +1,73 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-<header class="topbar">
-    <div>
-        <h1>Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p - BM03</h1>
-        <p class="muted">Gi&#7843;ng vi&#234;n: <strong th:text="${hoTenGiangVien}"></strong></p>
-    </div>
-    <button id="dangXuatBtn" class="secondary" type="button">&#272;&#259;ng xu&#7845;t</button>
-</header>
 
-<main class="layout">
-    <section class="panel">
-        <h2>Ch&#7885;n m&#244;n h&#7885;c / m&#244; &#273;un</h2>
-        <div class="row" style="justify-content: space-between;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <select id="monHocSelect"></select>
-                <button id="luuBangDiemBtn" type="button">L&#432;u b&#7843;ng &#273;i&#7875;m</button>
-                <button id="nopPhieuBtn" type="button">N&#7897;p phi&#7871;u BM03</button>
-                <button id="xemPhieuBtn" type="button">Xem phi&#7871;u BM03</button>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" id="importXmlInput" accept=".xml" style="display: none;">
-                <div class="dropdown">
-                    <button class="dropbtn" type="button" title="Tùy chọn">. . .</button>
-                    <div class="dropdown-content">
-                        <div id="importXmlBtn">Nhập (Import) XML</div>
-                        <div id="exportXmlBtn">Xuất (Export) XML</div>
+<body>
+    <header class="topbar">
+        <div>
+            <h1>Qu&#7843;n l&#253; &#273;i&#7875;m h&#7885;c t&#7853;p - BM03</h1>
+            <p class="muted">Gi&#7843;ng vi&#234;n: <strong th:text="${hoTenGiangVien}"></strong></p>
+        </div>
+        <button id="dangXuatBtn" class="secondary" type="button">&#272;&#259;ng xu&#7845;t</button>
+    </header>
+
+    <main class="layout">
+        <section class="panel">
+            <h2>Ch&#7885;n m&#244;n h&#7885;c / m&#244; &#273;un</h2>
+            <div class="row" style="justify-content: space-between;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="monHocSelect"></select>
+                    <button id="luuBangDiemBtn" type="button">L&#432;u b&#7843;ng &#273;i&#7875;m</button>
+                    <button id="nopPhieuBtn" type="button">N&#7897;p phi&#7871;u BM03</button>
+                    <button id="xemPhieuBtn" type="button">Xem phi&#7871;u BM03</button>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="importXmlInput" accept=".xml" style="display: none;">
+                    <div class="dropdown">
+                        <button class="dropbtn" type="button" title="Tùy chọn">. . .</button>
+                        <div class="dropdown-content">
+                            <div id="importXmlBtn">Nhập (Import) XML</div>
+                            <div id="exportXmlBtn">Xuất (Export) XML</div>
+                            <div id="sampleXmlBtn">Sample XML</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="thongTinMonHoc" class="meta-line"></div>
-    </section>
+            <div id="thongTinMonHoc" class="meta-line"></div>
+        </section>
 
-    <section class="panel">
-        <h2>Nh&#7853;p &#273;i&#7875;m theo danh s&#225;ch l&#7899;p</h2>
-        <table class="bang-diem-table">
-            <thead>
-            <tr>
-                <th>TT</th>
-                <th>MSSV</th>
-                <th>H&#7885; v&#224; t&#234;n</th>
-                <th>&#272;i&#7875;m KT th&#432;&#7901;ng xuy&#234;n</th>
-                <th>&#272;i&#7875;m KT &#273;&#7883;nh k&#7923;</th>
-                <th>&#272;i&#7875;m TBC</th>
-                <th>X&#233;t &#273;i&#7873;u ki&#7879;n d&#7921; thi</th>
-                <th>&#272;i&#7875;m KT k&#7871;t th&#250;c</th>
-                <th>&#272;i&#7875;m t&#7893;ng k&#7871;t</th>
-                <th>&#272;i&#7875;m ch&#7919;</th>
-                <th>&#272;i&#7875;m h&#7879; 4</th>
-                <th>Ghi ch&#250;</th>
-            </tr>
-            </thead>
-            <tbody id="bangDiemBody"></tbody>
-        </table>
-    </section>
-</main>
+        <section class="panel">
+            <h2>Nh&#7853;p &#273;i&#7875;m theo danh s&#225;ch l&#7899;p</h2>
+            <table class="bang-diem-table">
+                <thead>
+                    <tr>
+                        <th>TT</th>
+                        <th>MSSV</th>
+                        <th>H&#7885; v&#224; t&#234;n</th>
+                        <th>&#272;i&#7875;m KT th&#432;&#7901;ng xuy&#234;n</th>
+                        <th>&#272;i&#7875;m KT &#273;&#7883;nh k&#7923;</th>
+                        <th>&#272;i&#7875;m TBC</th>
+                        <th>X&#233;t &#273;i&#7873;u ki&#7879;n d&#7921; thi</th>
+                        <th>&#272;i&#7875;m KT k&#7871;t th&#250;c</th>
+                        <th>&#272;i&#7875;m t&#7893;ng k&#7871;t</th>
+                        <th>&#272;i&#7875;m ch&#7919;</th>
+                        <th>&#272;i&#7875;m h&#7879; 4</th>
+                        <th>Ghi ch&#250;</th>
+                    </tr>
+                </thead>
+                <tbody id="bangDiemBody"></tbody>
+            </table>
+        </section>
+    </main>
 
-<div id="toast" class="toast"></div>
-<script src="/app.js"></script>
+    <div id="toast" class="toast"></div>
+    <script src="/app.js"></script>
 </body>
+
 </html>

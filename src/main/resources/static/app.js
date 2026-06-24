@@ -396,6 +396,35 @@ if (exportXmlBtn) {
     });
 }
 
+const sampleXmlBtn = document.getElementById("sampleXmlBtn");
+if (sampleXmlBtn) {
+    sampleXmlBtn.addEventListener("click", () => {
+        const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<BANG_DIEM>
+    <THONG_TIN_SINH_VIEN>
+        <mssv>1</mssv>
+        <ho_ten>Nguyễn Văn A</ho_ten>
+        <ngay_sinh>05/04/1999</ngay_sinh>
+        <khoa>68</khoa>
+        <gioi_tinh>M</gioi_tinh>
+        <diem_KTThuongXuyen>8.5</diem_KTThuongXuyen>
+        <diem_KTDinhKy>9.0</diem_KTDinhKy>
+        <diem_KTKetThuc>8.0</diem_KTKetThuc>
+        <ghi_chu>Khong co gi</ghi_chu>
+    </THONG_TIN_SINH_VIEN>
+    <!-- Các thẻ THONG_TIN_SINH_VIEN khác tương tự... -->
+</BANG_DIEM>`;
+        const blob = new Blob([xmlContent], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mau-cau-truc-diem.xml";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}
 luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));
 nopPhieuBtn.addEventListener("click", () => nopPhieu().catch(err => hienToast(err.message, false)));
 xemPhieuBtn.addEventListener("click", xemPhieu);
