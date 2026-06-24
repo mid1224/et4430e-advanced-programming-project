@@ -427,18 +427,18 @@ async function moViewModal(idx) {
                 <td class="center">${i + 1}</td>
                 <td class="center" style="font-weight: 500;">${s.mssv}</td>
                 <td>${s.hoTen}</td>
-                <td class="center">${s.diemKTThuongXuyen !== null ? s.diemKTThuongXuyen : ""}</td>
-                <td class="center">${s.diemKTDinhKy !== null ? s.diemKTDinhKy : ""}</td>
-                <td class="center" style="font-weight: 500;">${s.diemTBC !== null ? s.diemTBC : ""}</td>
+                <td class="center">${s.diemKTThuongXuyen ?? ""}</td>
+                <td class="center">${s.diemKTDinhKy ?? ""}</td>
+                <td class="center" style="font-weight: 500;">${s.diemTBC ?? ""}</td>
                 <td class="center">
                     ${s.trangThaiDuThi === true 
                         ? '<span class="badge-status success">Đủ ĐK</span>' 
                         : (s.trangThaiDuThi === false ? '<span class="badge-status error">Hỏng</span>' : "")}
                 </td>
-                <td class="center">${s.diemKTKetThuc !== null ? s.diemKTKetThuc : ""}</td>
-                <td class="center" style="font-weight: bold; color: #1e3a8a;">${s.diemTongKet !== null ? s.diemTongKet : ""}</td>
-                <td class="center" style="font-weight: bold;">${s.diemChu !== null ? s.diemChu : ""}</td>
-                <td>${s.ghiChu !== null ? s.ghiChu : ""}</td>
+                <td class="center">${s.diemKTKetThuc ?? ""}</td>
+                <td class="center" style="font-weight: bold; color: #1e3a8a;">${s.diemTongKet ?? ""}</td>
+                <td class="center" style="font-weight: bold;">${s.diemChu ?? ""}</td>
+                <td>${s.ghiChu ?? ""}</td>
             </tr>
         `).join("");
     } catch (e) {

@@ -267,18 +267,17 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <input type="file" id="importKhoaXmlInput" accept=".xml" style="display: none;">
-                <button id="btnImportKhoaXml" class="btn-success" style="display: inline-flex; align-items: center; gap: 6px; font-weight: bold; height: 38px; background-color: #6366f1;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    Import XML
-                </button>
-                <button id="btnExportKhoaXml" class="btn-success" style="display: inline-flex; align-items: center; gap: 6px; font-weight: bold; height: 38px; background-color: #6366f1;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Export XML
-                </button>
                 <button id="btnXuatBM03" class="btn-success" style="display: inline-flex; align-items: center; gap: 6px; font-weight: bold; height: 38px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     Xuất BM03
                 </button>
+                <div class="dropdown">
+                    <button class="dropbtn" type="button" title="Tùy chọn" style="height: 38px; line-height: 1;">. . .</button>
+                    <div class="dropdown-content">
+                        <div id="btnImportKhoaXml">Nhập (Import) XML</div>
+                        <div id="btnExportKhoaXml">Xuất (Export) XML</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div style="max-height: 380px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
