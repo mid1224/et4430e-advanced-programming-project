@@ -317,6 +317,10 @@ function moEditModal(idx) {
     document.getElementById("editGiangVien").value = pc.maGiangVien;
     document.getElementById("editHeSoGK").value = pc.heSoGiuaKy;
     document.getElementById("editHeSoCK").value = pc.heSoCuoiKy;
+    document.getElementById("editNgayBatDauGK").value = pc.ngayBatDauNhapGiuaKy || "";
+    document.getElementById("editNgayKetThucGK").value = pc.ngayKetThucNhapGiuaKy || "";
+    document.getElementById("editNgayBatDauCK").value = pc.ngayBatDauNhapCuoiKy || "";
+    document.getElementById("editNgayKetThucCK").value = pc.ngayKetThucNhapCuoiKy || "";
     moModal("editModal");
 }
 
@@ -324,6 +328,10 @@ document.getElementById("btnSubmitEdit").addEventListener("click", async () => {
     const id = document.getElementById("editPhanCongId").value;
     const maGiangVien = document.getElementById("editGiangVien").value;
     const heSoGiuaKy = parseFloat(document.getElementById("editHeSoGK").value);
+    const ngayBatDauNhapGiuaKy = document.getElementById("editNgayBatDauGK").value || null;
+    const ngayKetThucNhapGiuaKy = document.getElementById("editNgayKetThucGK").value || null;
+    const ngayBatDauNhapCuoiKy = document.getElementById("editNgayBatDauCK").value || null;
+    const ngayKetThucNhapCuoiKy = document.getElementById("editNgayKetThucCK").value || null;
 
     if (!maGiangVien) {
         hienToast("Vui lòng chọn giảng viên", false);
@@ -339,7 +347,7 @@ document.getElementById("btnSubmitEdit").addEventListener("click", async () => {
         await goiApi(`/api/khoa/phan-cong/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ maGiangVien: +maGiangVien, heSoGiuaKy })
+            body: JSON.stringify({ maGiangVien: +maGiangVien, heSoGiuaKy, ngayBatDauNhapGiuaKy, ngayKetThucNhapGiuaKy, ngayBatDauNhapCuoiKy, ngayKetThucNhapCuoiKy })
         });
         hienToast("Cập nhật phân công và hệ số thành công!", true);
         dongModal("editModal");

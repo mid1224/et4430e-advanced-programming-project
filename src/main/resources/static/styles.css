@@ -401,3 +401,9 @@ td input {
         overflow-x: auto;
     }
 }
+
+.closed-period {
+    background-color: #e5e7eb !important;
+    cursor: not-allowed;
+    color: #9ca3af;
+}

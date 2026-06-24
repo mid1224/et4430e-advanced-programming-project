@@ -39,13 +39,13 @@ public class DiemApiController {
     }
 
     @GetMapping("/bang-diem/{monHocId}")
-    public List<DongBangDiem> layBangDiem(@PathVariable Long monHocId, HttpSession session) {
+    public com.university.scorems.dto.BangDiemResponse layBangDiem(@PathVariable Long monHocId, HttpSession session) {
         return diemService.layBangDiemTheoMon(layMaGiangVien(session), monHocId);
     }
 
     @PostMapping("/bang-diem/luu")
     public ApiThongBao luuBangDiem(@RequestBody NhapBangDiemRequest request, HttpSession session) {
-        int soDong = diemService.luuBangDiem(layMaGiangVien(session), request);
+        int soDong = diemService.luuBangDiem(layMaGiangVien(session), request, false);
         return new ApiThongBao(true, "Da luu " + soDong + " dong diem thanh cong");
     }
 

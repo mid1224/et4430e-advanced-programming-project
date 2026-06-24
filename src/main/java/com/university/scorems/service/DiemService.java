@@ -1,6 +1,7 @@
 package com.university.scorems.service;
 
 import com.university.scorems.dto.DongBangDiem;
+import com.university.scorems.dto.BangDiemResponse;
 import com.university.scorems.dto.MonHocTomTat;
 import com.university.scorems.dto.NhapBangDiemRequest;
 import com.university.scorems.dto.NhapDiemDongRequest;
@@ -58,7 +59,7 @@ public class DiemService {
     }
 
     @Transactional(readOnly = true)
-    public List<DongBangDiem> layBangDiemTheoMon(Long maGiangVien, Long monHocId) {
+    public BangDiemResponse layBangDiemTheoMon(Long maGiangVien, Long monHocId) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(maGiangVien, monHocId);
         List<HocSinh> danhSachHocSinh = hocSinhRepository.findByLopHocIdOrderByHoTenAsc(phanCong.getLopHoc().getId());
         Map<Long, BangDiem> bangDiemMap = new HashMap<>();
@@ -83,11 +84,17 @@ public class DiemService {
                     bd == null ? null : bd.getGhiChu()
             ));
         }
-        return ketQua;
+        return new BangDiemResponse(
+            phanCong.getNgayBatDauNhapGiuaKy(),
+            phanCong.getNgayKetThucNhapGiuaKy(),
+            phanCong.getNgayBatDauNhapCuoiKy(),
+            phanCong.getNgayKetThucNhapCuoiKy(),
+            ketQua
+        );
     }
 
     @Transactional
-    public int luuBangDiem(Long maGiangVien, NhapBangDiemRequest request) {
+    public int luuBangDiem(Long maGiangVien, NhapBangDiemRequest request, boolean bypassPeriodCheck) {
         if (request.getMonHocId() == null) {
             throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Thieu monHocId");
         }
@@ -98,6 +105,21 @@ public class DiemService {
         PhanCongGiangDay phanCong = layPhanCongHopLe(maGiangVien, request.getMonHocId());
         Long lopHocId = phanCong.getLopHoc().getId();
         MonHoc monHoc = phanCong.getMonHoc();
+
+        LocalDate homNay = LocalDate.now();
+        boolean choPhepNhapGiuaKy = bypassPeriodCheck;
+        if (!choPhepNhapGiuaKy) {
+            choPhepNhapGiuaKy = true;
+            if (phanCong.getNgayBatDauNhapGiuaKy() != null && homNay.isBefore(phanCong.getNgayBatDauNhapGiuaKy())) choPhepNhapGiuaKy = false;
+            if (phanCong.getNgayKetThucNhapGiuaKy() != null && homNay.isAfter(phanCong.getNgayKetThucNhapGiuaKy())) choPhepNhapGiuaKy = false;
+        }
+
+        boolean choPhepNhapCuoiKy = bypassPeriodCheck;
+        if (!choPhepNhapCuoiKy) {
+            choPhepNhapCuoiKy = true;
+            if (phanCong.getNgayBatDauNhapCuoiKy() != null && homNay.isBefore(phanCong.getNgayBatDauNhapCuoiKy())) choPhepNhapCuoiKy = false;
+            if (phanCong.getNgayKetThucNhapCuoiKy() != null && homNay.isAfter(phanCong.getNgayKetThucNhapCuoiKy())) choPhepNhapCuoiKy = false;
+        }
 
         int soDongDaLuu = 0;
         for (NhapDiemDongRequest dong : request.getDanhSachDiem()) {
@@ -117,8 +139,14 @@ public class DiemService {
 
             bangDiem.setHocSinh(hocSinh);
             bangDiem.setMonHoc(monHoc);
-            bangDiem.setDiemKTThuongXuyen(diemTX);
-            bangDiem.setDiemKTDinhKy(diemDK);
+            
+            if (choPhepNhapGiuaKy) {
+                bangDiem.setDiemKTThuongXuyen(diemTX);
+                bangDiem.setDiemKTDinhKy(diemDK);
+            } else {
+                diemTX = bangDiem.getDiemKTThuongXuyen();
+                diemDK = bangDiem.getDiemKTDinhKy();
+            }
 
             if (diemTX != null && diemDK != null) {
                 Double diemTBC = lamTron((diemTX + diemDK * 2) / 3);
@@ -131,7 +159,7 @@ public class DiemService {
                 if (!duThi) {
                     // Rule nghiep vu bat buoc: khong du dieu kien du thi -> diemKTKetThuc = 0.
                     diemKTKetThuc = 0.0;
-                } else if (diemKTKetThucNhap != null) {
+                } else if (choPhepNhapCuoiKy && diemKTKetThucNhap != null) {
                     diemKTKetThuc = diemKTKetThucNhap;
                 } else {
                     // Du dieu kien du thi: giu nguyen diem da co, neu chua nhap thi de trong.
@@ -156,7 +184,9 @@ public class DiemService {
                 // Truong hop chua nhap du diem thanh phan
                 bangDiem.setDiemTBC(null);
                 bangDiem.setTrangThaiDuThi(null);
-                bangDiem.setDiemKTKetThuc(diemKTKetThucNhap != null ? diemKTKetThucNhap : bangDiem.getDiemKTKetThuc());
+                if (choPhepNhapCuoiKy) {
+                    bangDiem.setDiemKTKetThuc(diemKTKetThucNhap != null ? diemKTKetThucNhap : bangDiem.getDiemKTKetThuc());
+                }
                 bangDiem.setDiemTongKet(null);
                 bangDiem.setDiemChu(null);
                 bangDiem.setDiemHe4(null);
@@ -177,17 +207,17 @@ public class DiemService {
     @Transactional
     public int importXml(Long giangVienId, Long monHocId, MultipartFile file) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(giangVienId, monHocId);
-        return processXmlFile(phanCong, file);
+        return processXmlFile(phanCong, file, false);
     }
 
     @Transactional
     public int importXmlForKhoa(Long phanCongId, MultipartFile file) {
         PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(phanCongId)
                 .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
-        return processXmlFile(phanCong, file);
+        return processXmlFile(phanCong, file, true);
     }
 
-    private int processXmlFile(PhanCongGiangDay phanCong, MultipartFile file) {
+    private int processXmlFile(PhanCongGiangDay phanCong, MultipartFile file, boolean isKhoa) {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -235,7 +265,7 @@ public class DiemService {
                 req.setMonHocId(phanCong.getMonHoc().getId());
                 req.setDanhSachDiem(danhSachDiem);
                 // Giả lập quyền để luuBangDiem không cần kiểm tra lại
-                return luuBangDiem(phanCong.getMaGiangVien(), req);
+                return luuBangDiem(phanCong.getMaGiangVien(), req, isKhoa);
             }
             return 0;
         } catch (Exception e) {
@@ -284,7 +314,7 @@ public class DiemService {
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportXmlResponse(Long maGiangVien, Long monHocId) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(maGiangVien, monHocId);
-        List<DongBangDiem> list = layBangDiemTheoMon(maGiangVien, monHocId);
+        List<DongBangDiem> list = layBangDiemTheoMon(maGiangVien, monHocId).getDanhSachDiem();
         String xml = generateXmlExport(list);
         
         String filename = String.format("%s_%s_Ky%s.xml", 
@@ -336,7 +366,7 @@ public class DiemService {
     public PhieuBM03Data layDuLieuPhieuBM03(Long maGiangVien, Long monHocId) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(maGiangVien, monHocId);
         MonHoc monHoc = phanCong.getMonHoc();
-        List<DongBangDiem> danhSachDiem = layBangDiemTheoMon(maGiangVien, monHocId);
+        List<DongBangDiem> danhSachDiem = layBangDiemTheoMon(maGiangVien, monHocId).getDanhSachDiem();
 
         LocalDate ngayLap = bangDiemRepository.findByMonHocIdOrderByHocSinhHoTenAsc(monHocId).stream()
                 .map(BangDiem::getNgayNopPhieu)

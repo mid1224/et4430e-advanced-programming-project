@@ -2,6 +2,7 @@ package com.university.scorems.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import java.time.LocalDate;
 
 @Getter
 @AllArgsConstructor
@@ -16,5 +17,9 @@ public class PhanCongChiTiet {
     private String tenLop;
     private Double heSoGiuaKy;
     private Double heSoCuoiKy;
+    private LocalDate ngayBatDauNhapGiuaKy;
+    private LocalDate ngayKetThucNhapGiuaKy;
+    private LocalDate ngayBatDauNhapCuoiKy;
+    private LocalDate ngayKetThucNhapCuoiKy;
 }
 

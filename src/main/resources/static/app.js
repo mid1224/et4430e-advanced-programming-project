@@ -9,6 +9,7 @@ const toast = document.getElementById("toast");
 
 let danhSachMonHoc = [];
 let duLieuBangDiem = [];
+let thongTinBangDiem = null;
 
 function lamTronHaiChuSo(value) {
     return Math.round(value * 100) / 100;
@@ -201,6 +202,20 @@ function veThongTinMonHoc() {
 }
 
 function veBangDiem() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const checkPeriod = (start, end) => {
+        if (start && todayStr < start) return false;
+        if (end && todayStr > end) return false;
+        return true;
+    };
+
+    const isOpenGK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapGiuaKy, thongTinBangDiem.ngayKetThucNhapGiuaKy) : true;
+    const isOpenCK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapCuoiKy, thongTinBangDiem.ngayKetThucNhapCuoiKy) : true;
+
+    const disabledAttrGK = isOpenGK ? "" : "disabled class='closed-period'";
+    const disabledAttrCK = isOpenCK ? "" : "disabled class='closed-period'";
+
     bangDiemBody.innerHTML = duLieuBangDiem.map((dong, index) => {
         const diemTX = dong.diemKTThuongXuyen ?? "";
         const diemDK = dong.diemKTDinhKy ?? "";
@@ -213,11 +228,11 @@ function veBangDiem() {
             <td class="center">${index + 1}</td>
             <td class="center">${dong.mssv}</td>
             <td>${dong.hoTen}</td>
-            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}"></td>
-            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}"></td>
+            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}" ${disabledAttrGK}></td>
+            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}" ${disabledAttrGK}></td>
             <td class="center" data-view="diemTBC" data-hocsinhid="${dong.hocSinhId}">${dong.diemTBC ?? ""}</td>
             <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "Đủ điều kiện" : "Không đủ điều kiện")}</td>
-            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}"></td>
+            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}" ${disabledAttrCK}></td>
             <td class="center" data-view="diemTongKet" data-hocsinhid="${dong.hocSinhId}">${dong.diemTongKet ?? ""}</td>
             <td class="center" data-view="diemChu" data-hocsinhid="${dong.hocSinhId}">${dong.diemChu ?? ""}</td>
             <td class="center" data-view="diemHe4" data-hocsinhid="${dong.hocSinhId}">${dong.diemHe4 ?? ""}</td>
@@ -281,7 +296,15 @@ async function taiBangDiem() {
         hienToast("Vui lòng chọn môn học", false);
         return;
     }
-    duLieuBangDiem = await goiApi(`/api/bang-diem/${monHocId}`);
+    thongTinBangDiem = await goiApi(`/api/bang-diem/${monHocId}?_t=${Date.now()}`);
+    
+    // Xử lý trường hợp cache trình duyệt trả về mảng cũ hoặc format mới
+    if (Array.isArray(thongTinBangDiem)) {
+        duLieuBangDiem = thongTinBangDiem;
+        thongTinBangDiem = null;
+    } else {
+        duLieuBangDiem = thongTinBangDiem.danhSachDiem || [];
+    }
     veBangDiem();
     veThongTinMonHoc();
 }
