@@ -386,12 +386,12 @@ async function moViewModal(idx) {
         formData.append("file", file);
         
         try {
-            const data = await fetch(`/api/khoa/phan-cong/${pc.id}/import-xml`, {
+            const data = await fetch(`/api/khoa/phan-cong/${pc.id}/import-excel`, {
                 method: "POST",
                 body: formData
             });
             const res = await data.json();
-            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import Excel");
             
             hienToast(res.thongBao, true);
             // Reload view modal to show new scores
@@ -403,9 +403,9 @@ async function moViewModal(idx) {
         }
     };
 
-    // Bind export XML button
+    // Bind export Excel button
     document.getElementById("btnExportKhoaXml").onclick = () => {
-        window.open(`/api/khoa/phan-cong/${pc.id}/export-xml`, "_blank");
+        window.open(`/api/khoa/phan-cong/${pc.id}/export-excel`, "_blank");
     };
 
     // Load score sheet

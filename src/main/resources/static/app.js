@@ -201,6 +201,57 @@ function veThongTinMonHoc() {
     capNhatStatsLive();
 }
 
+const cheDoNhapDiemSelect = document.getElementById("cheDoNhapDiemSelect");
+
+function apDungCheDoNhapDiem() {
+    if (!cheDoNhapDiemSelect) return;
+    const cheDo = cheDoNhapDiemSelect.value;
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const checkPeriod = (start, end) => {
+        if (start && todayStr < start) return false;
+        if (end && todayStr > end) return false;
+        return true;
+    };
+
+    const isOpenGK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapGiuaKy, thongTinBangDiem.ngayKetThucNhapGiuaKy) : true;
+    const isOpenCK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapCuoiKy, thongTinBangDiem.ngayKetThucNhapCuoiKy) : true;
+
+    document.querySelectorAll("#bangDiemBody input").forEach(input => {
+        const field = input.dataset.field;
+        let isPeriodOpen = true;
+        let isModeActive = true;
+
+        if (field === "diemKTThuongXuyen" || field === "diemKTDinhKy") {
+            isPeriodOpen = isOpenGK;
+            if (cheDo === "tx" && field !== "diemKTThuongXuyen") isModeActive = false;
+            if (cheDo === "dk" && field !== "diemKTDinhKy") isModeActive = false;
+            if (cheDo === "thi") isModeActive = false;
+        } else if (field === "diemKTKetThuc") {
+            isPeriodOpen = isOpenCK;
+            if (cheDo === "tx" || cheDo === "dk") isModeActive = false;
+            if (cheDo === "thi" && field !== "diemKTKetThuc") isModeActive = false;
+        }
+
+        if (!isPeriodOpen) {
+            input.disabled = true;
+            input.classList.add("closed-period");
+        } else if (!isModeActive) {
+            input.disabled = true;
+            input.classList.remove("closed-period");
+            input.style.backgroundColor = "#e9ecef";
+        } else {
+            input.disabled = false;
+            input.classList.remove("closed-period");
+            input.style.backgroundColor = "";
+        }
+    });
+}
+
+if (cheDoNhapDiemSelect) {
+    cheDoNhapDiemSelect.addEventListener("change", apDungCheDoNhapDiem);
+}
+
 function veBangDiem() {
     const todayStr = new Date().toISOString().split('T')[0];
     
@@ -213,36 +264,37 @@ function veBangDiem() {
     const isOpenGK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapGiuaKy, thongTinBangDiem.ngayKetThucNhapGiuaKy) : true;
     const isOpenCK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapCuoiKy, thongTinBangDiem.ngayKetThucNhapCuoiKy) : true;
 
-    const disabledAttrGK = isOpenGK ? "" : "disabled class='closed-period'";
-    const disabledAttrCK = isOpenCK ? "" : "disabled class='closed-period'";
-
+    // Remove disabledAttrs logic here, it is handled by apDungCheDoNhapDiem()
+    
     bangDiemBody.innerHTML = duLieuBangDiem.map((dong, index) => {
         const diemTX = dong.diemKTThuongXuyen ?? "";
         const diemDK = dong.diemKTDinhKy ?? "";
         const diemKTKetThuc = dong.diemKTKetThuc ?? "";
         const ghiChu = escapeThuocTinh(dong.ghiChu ?? "");
 
-        // Đã gắn thêm data-view vào các cột điểm tổng kết, điểm chữ, điểm hệ 4 và trạng thái lưu
         return `
         <tr data-hocsinhid="${dong.hocSinhId}">
             <td class="center">${index + 1}</td>
             <td class="center">${dong.mssv}</td>
             <td>${dong.hoTen}</td>
-            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}" ${disabledAttrGK}></td>
-            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}" ${disabledAttrGK}></td>
+            <td><input data-field="diemKTThuongXuyen" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemTX}"></td>
+            <td><input data-field="diemKTDinhKy" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemDK}"></td>
             <td class="center" data-view="diemTBC" data-hocsinhid="${dong.hocSinhId}">${dong.diemTBC ?? ""}</td>
             <td class="center" data-view="trangThaiDuThi" data-hocsinhid="${dong.hocSinhId}">${dong.trangThaiDuThi == null ? "" : (dong.trangThaiDuThi ? "Đủ điều kiện" : "Không đủ điều kiện")}</td>
-            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}" ${disabledAttrCK}></td>
+            <td><input data-field="diemKTKetThuc" data-hocsinhid="${dong.hocSinhId}" type="number" min="0" max="10" step="0.05" value="${diemKTKetThuc}"></td>
             <td class="center" data-view="diemTongKet" data-hocsinhid="${dong.hocSinhId}">${dong.diemTongKet ?? ""}</td>
             <td class="center" data-view="diemChu" data-hocsinhid="${dong.hocSinhId}">${dong.diemChu ?? ""}</td>
             <td class="center" data-view="diemHe4" data-hocsinhid="${dong.hocSinhId}">${dong.diemHe4 ?? ""}</td>
-            <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}"></td>
+            <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}" tabindex="-1"></td>
             <td class="center" data-view="trangThaiLuu" data-hocsinhid="${dong.hocSinhId}">Đã lưu</td>
         </tr>`;
     }).join("");
 
     // Kích hoạt tính toán ban đầu mà không đánh dấu là chưa lưu
     duLieuBangDiem.forEach(dong => capNhatDongTinhToan(dong.hocSinhId, false));
+    
+    // Apply initial dropdown state
+    apDungCheDoNhapDiem();
 }
 
 // Bắt sự kiện thay đổi trên bất kỳ ô input nào thuộc bảng để cập nhật trạng thái ngay lập tức
@@ -375,12 +427,12 @@ if (importXmlBtn && importXmlInput) {
         formData.append("file", file);
 
         try {
-            const data = await fetch(`/api/bang-diem/import-xml/${monHocDangChon()}`, {
+            const data = await fetch(`/api/bang-diem/import-excel/${monHocDangChon()}`, {
                 method: "POST",
                 body: formData
             });
             const res = await data.json();
-            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import Excel");
             
             hienToast(res.thongBao, true);
             taiBangDiem();
@@ -400,37 +452,7 @@ if (exportXmlBtn) {
             hienToast("Vui lòng chọn môn học trước khi export", false);
             return;
         }
-        window.open(`/api/bang-diem/export-xml/${monHocId}`, "_blank");
-    });
-}
-
-const sampleXmlBtn = document.getElementById("sampleXmlBtn");
-if (sampleXmlBtn) {
-    sampleXmlBtn.addEventListener("click", () => {
-        const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<BANG_DIEM>
-    <THONG_TIN_SINH_VIEN>
-        <mssv>1</mssv>
-        <ho_ten>Nguyễn Văn A</ho_ten>
-        <ngay_sinh>05/04/1999</ngay_sinh>
-        <khoa>68</khoa>
-        <gioi_tinh>M</gioi_tinh>
-        <diem_KTThuongXuyen>8.5</diem_KTThuongXuyen>
-        <diem_KTDinhKy>9.0</diem_KTDinhKy>
-        <diem_KTKetThuc>8.0</diem_KTKetThuc>
-        <ghi_chu>Khong co gi</ghi_chu>
-    </THONG_TIN_SINH_VIEN>
-    <!-- Các thẻ THONG_TIN_SINH_VIEN khác tương tự... -->
-</BANG_DIEM>`;
-        const blob = new Blob([xmlContent], { type: "application/xml" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "mau-cau-truc-diem.xml";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        window.open(`/api/bang-diem/export-excel/${monHocId}`, "_blank");
     });
 }
 luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));

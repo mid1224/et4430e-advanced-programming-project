@@ -55,16 +55,17 @@ public class DiemApiController {
         return new ApiThongBao(true, "Da nop phieu BM03 ngay " + ngayNop);
     }
 
-    @PostMapping("/bang-diem/import-xml/{monHocId}")
-    public ApiThongBao importXml(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
-        int soDong = diemService.importXml(layMaGiangVien(session), monHocId, file);
-        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ XML.");
+    @PostMapping("/bang-diem/import-excel/{monHocId}")
+    public ApiThongBao importExcel(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
+        Long maGiangVien = layMaGiangVien(session);
+        int soDong = diemService.importExcel(maGiangVien, monHocId, file);
+        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ Excel.");
     }
 
-    @GetMapping("/bang-diem/export-xml/{monHocId}")
-    public ResponseEntity<byte[]> exportXml(@PathVariable Long monHocId, HttpSession session) {
+    @GetMapping("/bang-diem/export-excel/{monHocId}")
+    public ResponseEntity<byte[]> exportExcel(@PathVariable Long monHocId, HttpSession session) {
         Long maGiangVien = layMaGiangVien(session);
-        return diemService.exportXmlResponse(maGiangVien, monHocId);
+        return diemService.exportExcelResponse(maGiangVien, monHocId);
     }
 
     @GetMapping("/phieu-bm03/{monHocId}")

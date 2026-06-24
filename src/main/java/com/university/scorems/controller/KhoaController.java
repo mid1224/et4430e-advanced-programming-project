@@ -128,19 +128,19 @@ public class KhoaController {
         return new ApiThongBao(true, "Cap nhat he so thanh cong");
     }
 
-    @PostMapping("/api/khoa/phan-cong/{id}/import-xml")
+    @PostMapping("/api/khoa/phan-cong/{id}/import-excel")
     @ResponseBody
-    public ApiThongBao importXmlKhoa(@PathVariable Long id, @RequestParam("file") MultipartFile file, HttpSession session) {
+    public ApiThongBao importExcelKhoa(@PathVariable Long id, @RequestParam("file") MultipartFile file, HttpSession session) {
         kiemTraKhoa(session);
-        int soDong = diemService.importXmlForKhoa(id, file);
-        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ XML.");
+        int soDong = diemService.importExcelForKhoa(id, file);
+        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ Excel.");
     }
 
-    @GetMapping("/api/khoa/phan-cong/{id}/export-xml")
-    public ResponseEntity<byte[]> exportXmlKhoa(@PathVariable Long id, HttpSession session) {
+    @GetMapping("/api/khoa/phan-cong/{id}/export-excel")
+    public ResponseEntity<byte[]> exportExcelKhoa(@PathVariable Long id, HttpSession session) {
         kiemTraKhoa(session);
         List<DongBangDiem> list = khoaService.layBangDiemChoPhanCong(id);
-        return diemService.exportXmlResponseKhoa(id, list);
+        return diemService.exportExcelResponseKhoa(id, list);
     }
 
 

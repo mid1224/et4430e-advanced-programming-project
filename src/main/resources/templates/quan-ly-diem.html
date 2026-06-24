@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -23,18 +23,18 @@
             <div class="row" style="justify-content: space-between;">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <select id="monHocSelect"></select>
+
                     <button id="luuBangDiemBtn" type="button">L&#432;u b&#7843;ng &#273;i&#7875;m</button>
                     <button id="nopPhieuBtn" type="button">N&#7897;p phi&#7871;u BM03</button>
                     <button id="xemPhieuBtn" type="button">Xem phi&#7871;u BM03</button>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="file" id="importXmlInput" accept=".xml" style="display: none;">
+                    <input type="file" id="importXmlInput" accept=".xlsx" style="display: none;">
                     <div class="dropdown">
                         <button class="dropbtn" type="button" title="Tùy chọn">. . .</button>
                         <div class="dropdown-content">
-                            <div id="importXmlBtn">Nhập (Import) XML</div>
-                            <div id="exportXmlBtn">Xuất (Export) XML</div>
-                            <div id="sampleXmlBtn">Sample XML</div>
+                            <div id="importXmlBtn">Nhập (Import) Excel</div>
+                            <div id="exportXmlBtn">Xuất (Export) Excel</div>
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,15 @@
         </section>
 
         <section class="panel">
-            <h2>Nh&#7853;p &#273;i&#7875;m theo danh s&#225;ch l&#7899;p</h2>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <h2 style="margin: 0;">Nh&#7853;p &#273;i&#7875;m theo danh s&#225;ch l&#7899;p</h2>
+                <select id="cheDoNhapDiemSelect" style="padding: 6px;">
+                    <option value="all">Tất cả các cột</option>
+                    <option value="tx">Chỉ nhập Điểm TX</option>
+                    <option value="dk">Chỉ nhập Điểm ĐK</option>
+                    <option value="thi">Chỉ nhập Điểm thi</option>
+                </select>
+            </div>
             <table class="bang-diem-table">
                 <thead>
                     <tr>

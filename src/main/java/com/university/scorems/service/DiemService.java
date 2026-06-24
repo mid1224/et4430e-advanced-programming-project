@@ -23,11 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import org.springframework.web.multipart.MultipartFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -126,9 +125,7 @@ public class DiemService {
             HocSinh hocSinh = hocSinhRepository.findById(dong.getHocSinhId())
                     .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Khong tim thay hoc sinh"));
 
-            if (!hocSinh.getLopHoc().getId().equals(lopHocId)) {
-                throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Hoc sinh khong thuoc lop duoc phan cong");
-            }
+
 
             Double diemTX = chuanHoaDiem(dong.getDiemKTThuongXuyen(), "diemKTThuongXuyen");
             Double diemDK = chuanHoaDiem(dong.getDiemKTDinhKy(), "diemKTDinhKy");
@@ -205,61 +202,54 @@ public class DiemService {
     }
 
     @Transactional
-    public int importXml(Long giangVienId, Long monHocId, MultipartFile file) {
+    public int importExcel(Long giangVienId, Long monHocId, MultipartFile file) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(giangVienId, monHocId);
-        return processXmlFile(phanCong, file, false);
+        return processExcelFile(phanCong, file, false);
     }
 
     @Transactional
-    public int importXmlForKhoa(Long phanCongId, MultipartFile file) {
+    public int importExcelForKhoa(Long phanCongId, MultipartFile file) {
         PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(phanCongId)
                 .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
-        return processXmlFile(phanCong, file, true);
+        return processExcelFile(phanCong, file, true);
     }
 
-    private int processXmlFile(PhanCongGiangDay phanCong, MultipartFile file, boolean isKhoa) {
-        try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(file.getInputStream());
-            doc.getDocumentElement().normalize();
-
-            NodeList nodeList = doc.getElementsByTagName("SINH_VIEN");
+    private int processExcelFile(PhanCongGiangDay phanCong, MultipartFile file, boolean isKhoa) {
+        try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet sheet = workbook.getSheetAt(0);
             List<NhapDiemDongRequest> danhSachDiem = new ArrayList<>();
-
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                org.w3c.dom.Node node = nodeList.item(i);
-                if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                    Element element = (Element) node;
-                    String mssv = getTagValue("mssv", element);
-                    
-                    if (mssv == null || mssv.trim().isEmpty()) {
-                        continue;
-                    }
-                    
-                    String hoTen = getTagValue("ho_ten", element);
-                    if (hoTen == null || hoTen.trim().isEmpty()) hoTen = "Chưa cập nhật tên";
-
-                    HocSinh hocSinh = hocSinhRepository.findByMssv(mssv).orElseGet(() -> {
-                        HocSinh hs = new HocSinh();
-                        hs.setMssv(mssv);
-                        hs.setLopHoc(phanCong.getLopHoc());
-                        return hs;
-                    });
-                    hocSinh.setHoTen(hoTen);
-                    hocSinhRepository.save(hocSinh);
-
-                    NhapDiemDongRequest dongReq = new NhapDiemDongRequest();
-                    dongReq.setHocSinhId(hocSinh.getId());
-                    dongReq.setDiemKTThuongXuyen(parseDoubleOrNull(getTagValue("diem_kt_thuong_xuyen", element)));
-                    dongReq.setDiemKTDinhKy(parseDoubleOrNull(getTagValue("diem_kt_dinh_ky", element)));
-                    dongReq.setDiemKTKetThuc(parseDoubleOrNull(getTagValue("diem_kt_ket_thuc", element)));
-                    dongReq.setGhiChu(getTagValue("ghi_chu", element));
-                    
-                    danhSachDiem.add(dongReq);
-                }
+            
+            // Skip header row (index 0)
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                
+                String mssv = getCellValueAsString(row.getCell(0));
+                if (mssv == null || mssv.trim().isEmpty()) continue;
+                
+                String hoTen = getCellValueAsString(row.getCell(1));
+                if (hoTen == null || hoTen.trim().isEmpty()) hoTen = "Chưa cập nhật tên";
+                
+                HocSinh hocSinh = hocSinhRepository.findByMssv(mssv).orElseGet(() -> {
+                    HocSinh hs = new HocSinh();
+                    hs.setMssv(mssv);
+                    return hs;
+                });
+                hocSinh.setLopHoc(phanCong.getLopHoc());
+                hocSinh.setHoTen(hoTen);
+                hocSinhRepository.save(hocSinh);
+                
+                NhapDiemDongRequest dongReq = new NhapDiemDongRequest();
+                dongReq.setHocSinhId(hocSinh.getId());
+                dongReq.setDiemKTThuongXuyen(parseDoubleOrNull(getCellValueAsString(row.getCell(2))));
+                dongReq.setDiemKTDinhKy(parseDoubleOrNull(getCellValueAsString(row.getCell(3))));
+                dongReq.setDiemKTKetThuc(parseDoubleOrNull(getCellValueAsString(row.getCell(4))));
+                // Column 5 is ghi chu if present, otherwise ignore
+                dongReq.setGhiChu(getCellValueAsString(row.getCell(5)));
+                
+                danhSachDiem.add(dongReq);
             }
-
+            
             if (!danhSachDiem.isEmpty()) {
                 NhapBangDiemRequest req = new NhapBangDiemRequest();
                 req.setMonHocId(phanCong.getMonHoc().getId());
@@ -269,80 +259,88 @@ public class DiemService {
             }
             return 0;
         } catch (Exception e) {
-            throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Lỗi đọc file XML: " + e.getMessage());
+            throw new LoiNghiepVuException(HttpStatus.BAD_REQUEST, "Lỗi đọc file Excel: " + e.getMessage());
         }
     }
 
-    private String getTagValue(String tag, Element element) {
-        NodeList nlList = element.getElementsByTagName(tag);
-        if (nlList != null && nlList.getLength() > 0) {
-            org.w3c.dom.Node nValue = nlList.item(0).getFirstChild();
-            if (nValue != null) {
-                return nValue.getNodeValue();
-            }
-        }
-        return null;
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return null;
+        DataFormatter formatter = new DataFormatter();
+        return formatter.formatCellValue(cell);
     }
 
     private Double parseDoubleOrNull(String str) {
         if (str == null || str.trim().isEmpty()) return null;
         try {
-            return Double.parseDouble(str.trim());
+            return Double.parseDouble(str.trim().replace(",", "."));
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    public String generateXmlExport(List<DongBangDiem> bangDiemList) {
-        StringBuilder xml = new StringBuilder();
-        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<BANG_DIEM>\n");
-        for (DongBangDiem dong : bangDiemList) {
-            xml.append("    <SINH_VIEN>\n");
-            xml.append("        <mssv>").append(dong.getMssv() != null ? dong.getMssv() : "").append("</mssv>\n");
-            xml.append("        <ho_ten>").append(dong.getHoTen() != null ? dong.getHoTen() : "").append("</ho_ten>\n");
-            xml.append("        <diem_kt_thuong_xuyen>").append(dong.getDiemKTThuongXuyen() != null ? dong.getDiemKTThuongXuyen() : "").append("</diem_kt_thuong_xuyen>\n");
-            xml.append("        <diem_kt_dinh_ky>").append(dong.getDiemKTDinhKy() != null ? dong.getDiemKTDinhKy() : "").append("</diem_kt_dinh_ky>\n");
-            xml.append("        <diem_kt_ket_thuc>").append(dong.getDiemKTKetThuc() != null ? dong.getDiemKTKetThuc() : "").append("</diem_kt_ket_thuc>\n");
-            xml.append("        <ghi_chu>").append(dong.getGhiChu() != null ? dong.getGhiChu() : "").append("</ghi_chu>\n");
-            xml.append("    </SINH_VIEN>\n");
+    public byte[] generateExcelExport(List<DongBangDiem> bangDiemList) {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Bang Diem");
+            
+            // Header
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"mssv", "ho_ten", "diem_kt_thuong_xuyen", "diem_kt_dinh_ky", "diem_kt_ket_thuc", "ghi_chu"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+            
+            // Data
+            int rowIdx = 1;
+            for (DongBangDiem dong : bangDiemList) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(dong.getMssv() != null ? dong.getMssv() : "");
+                row.createCell(1).setCellValue(dong.getHoTen() != null ? dong.getHoTen() : "");
+                if (dong.getDiemKTThuongXuyen() != null) row.createCell(2).setCellValue(dong.getDiemKTThuongXuyen());
+                if (dong.getDiemKTDinhKy() != null) row.createCell(3).setCellValue(dong.getDiemKTDinhKy());
+                if (dong.getDiemKTKetThuc() != null) row.createCell(4).setCellValue(dong.getDiemKTKetThuc());
+                row.createCell(5).setCellValue(dong.getGhiChu() != null ? dong.getGhiChu() : "");
+            }
+            
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new LoiNghiepVuException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi tạo file Excel: " + e.getMessage());
         }
-        xml.append("</BANG_DIEM>");
-        return xml.toString();
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<byte[]> exportXmlResponse(Long maGiangVien, Long monHocId) {
+    public ResponseEntity<byte[]> exportExcelResponse(Long maGiangVien, Long monHocId) {
         PhanCongGiangDay phanCong = layPhanCongHopLe(maGiangVien, monHocId);
         List<DongBangDiem> list = layBangDiemTheoMon(maGiangVien, monHocId).getDanhSachDiem();
-        String xml = generateXmlExport(list);
+        byte[] excelBytes = generateExcelExport(list);
         
-        String filename = String.format("%s_%s_Ky%s.xml", 
+        String filename = String.format("%s_%s_Ky%s.xlsx", 
             phanCong.getLopHoc().getTenLop(), 
             phanCong.getMonHoc().getMaMH(), 
             phanCong.getMonHoc().getHocKy()).replaceAll("\\s+", "_");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_XML)
-                .body(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelBytes);
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<byte[]> exportXmlResponseKhoa(Long phanCongId, List<DongBangDiem> list) {
+    public ResponseEntity<byte[]> exportExcelResponseKhoa(Long phanCongId, List<DongBangDiem> list) {
         PhanCongGiangDay phanCong = phanCongGiangDayRepository.findById(phanCongId)
                 .orElseThrow(() -> new LoiNghiepVuException(HttpStatus.NOT_FOUND, "Không tìm thấy phân công"));
-        String xml = generateXmlExport(list);
+        byte[] excelBytes = generateExcelExport(list);
         
-        String filename = String.format("%s_%s_Ky%s.xml", 
+        String filename = String.format("%s_%s_Ky%s.xlsx", 
             phanCong.getLopHoc().getTenLop(), 
             phanCong.getMonHoc().getMaMH(), 
             phanCong.getMonHoc().getHocKy()).replaceAll("\\s+", "_");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_XML)
-                .body(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelBytes);
     }
 
     @Transactional
