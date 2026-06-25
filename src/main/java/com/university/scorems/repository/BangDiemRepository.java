@@ -10,4 +10,5 @@ public interface BangDiemRepository extends JpaRepository<BangDiem, Long> {
     Optional<BangDiem> findByHocSinhIdAndMonHocId(Long hocSinhId, Long monHocId);
 
     List<BangDiem> findByMonHocIdOrderByHocSinhHoTenAsc(Long monHocId);
+    List<BangDiem> findByHocSinhId(Long hocSinhId);
 }

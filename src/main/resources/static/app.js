@@ -10,6 +10,9 @@ const toast = document.getElementById("toast");
 let danhSachMonHoc = [];
 let duLieuBangDiem = [];
 let thongTinBangDiem = null;
+let phanCongHienTaiId = null; 
+let isKhoaMode = window.location.pathname.includes('/khoa_CM');
+let isDeleteMode = false;
 
 function lamTronHaiChuSo(value) {
     return Math.round(value * 100) / 100;
@@ -171,7 +174,7 @@ function monHocDangChon() {
 
 function veDanhSachMonHoc() {
     monHocSelect.innerHTML = danhSachMonHoc
-        .map(monHoc => `<option value="${monHoc.id}">${monHoc.maMH} - ${monHoc.tenMonHoc}</option>`)
+        .map(monHoc => `<option value="${monHoc.id}">${monHoc.maMH} - ${monHoc.tenMonHoc} - ${monHoc.tenLop}</option>`)
         .join("");
 }
 
@@ -287,6 +290,9 @@ function veBangDiem() {
             <td class="center" data-view="diemHe4" data-hocsinhid="${dong.hocSinhId}">${dong.diemHe4 ?? ""}</td>
             <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}" tabindex="-1"></td>
             <td class="center" data-view="trangThaiLuu" data-hocsinhid="${dong.hocSinhId}">Đã lưu</td>
+            <td class="delete-col" style="display: ${isDeleteMode ? 'table-cell' : 'none'};">
+                <button type="button" class="btn-delete" data-hocsinhid="${dong.hocSinhId}" style="background: none; border: none; cursor: pointer; color: red; font-size: 16px;">🗑️</button>
+            </td>
         </tr>`;
     }).join("");
 
@@ -455,6 +461,48 @@ if (exportXmlBtn) {
         window.open(`/api/bang-diem/export-excel/${monHocId}`, "_blank");
     });
 }
+
+const deleteStudentModeBtn = document.getElementById("deleteStudentModeBtn");
+if (deleteStudentModeBtn) {
+    deleteStudentModeBtn.addEventListener("click", () => {
+        isDeleteMode = !isDeleteMode;
+        if (isDeleteMode) {
+            deleteStudentModeBtn.style.fontWeight = "bold";
+            deleteStudentModeBtn.textContent = "Hủy xóa học sinh";
+        } else {
+            deleteStudentModeBtn.style.fontWeight = "normal";
+            deleteStudentModeBtn.textContent = "Chế độ xóa học sinh";
+        }
+        
+        document.querySelectorAll(".delete-col").forEach(col => {
+            col.style.display = isDeleteMode ? "table-cell" : "none";
+        });
+    });
+}
+
+bangDiemBody.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-delete");
+    if (!btn) return;
+    
+    const hocSinhId = btn.dataset.hocsinhid;
+    const monHocId = monHocDangChon();
+    if (!hocSinhId || !monHocId) return;
+    
+    if (!confirm("Bạn có chắc chắn muốn xóa học sinh này khỏi lớp? Toàn bộ điểm của học sinh này trong môn sẽ bị xóa!")) return;
+    
+    try {
+        const data = await fetch(`/api/bang-diem/${monHocId}/hoc-sinh/${hocSinhId}`, {
+            method: "DELETE"
+        });
+        const res = await data.json();
+        if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi xóa học sinh");
+        
+        hienToast(res.thongBao, true);
+        taiBangDiem();
+    } catch (error) {
+        hienToast(error.message, false);
+    }
+});
 luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));
 nopPhieuBtn.addEventListener("click", () => nopPhieu().catch(err => hienToast(err.message, false)));
 xemPhieuBtn.addEventListener("click", xemPhieu);

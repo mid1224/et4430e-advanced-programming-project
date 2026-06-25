@@ -58,8 +58,15 @@ public class DiemApiController {
     @PostMapping("/bang-diem/import-excel/{monHocId}")
     public ApiThongBao importExcel(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
         Long maGiangVien = layMaGiangVien(session);
-        int soDong = diemService.importExcel(maGiangVien, monHocId, file);
-        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ Excel.");
+        int rows = diemService.importExcel(maGiangVien, monHocId, file);
+        return new ApiThongBao(true, "Đã import thành công " + rows + " dòng điểm từ Excel");
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/bang-diem/{monHocId}/hoc-sinh/{hocSinhId}")
+    public ApiThongBao xoaHocSinh(@PathVariable Long monHocId, @PathVariable Long hocSinhId, HttpSession session) {
+        Long maGiangVien = layMaGiangVien(session);
+        diemService.xoaHocSinhKhoiMon(maGiangVien, monHocId, hocSinhId);
+        return new ApiThongBao(true, "Đã xóa học sinh thành công");
     }
 
     @GetMapping("/bang-diem/export-excel/{monHocId}")

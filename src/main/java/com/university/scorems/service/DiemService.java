@@ -50,10 +50,15 @@ public class DiemService {
     @Transactional(readOnly = true)
     public List<MonHocTomTat> layMonHocTheoGiangVien(Long maGiangVien) {
         return phanCongGiangDayRepository.findByMaGiangVien(maGiangVien).stream()
-                .map(PhanCongGiangDay::getMonHoc)
-                .distinct()
-                .sorted(Comparator.comparing(MonHoc::getTenMonHoc))
-                .map(mh -> new MonHocTomTat(mh.getId(), mh.getMaMH(), mh.getTenMonHoc(), mh.getHocKy(), mh.getNamHoc()))
+                .sorted(Comparator.comparing(pc -> pc.getMonHoc().getTenMonHoc()))
+                .map(pc -> new MonHocTomTat(
+                        pc.getMonHoc().getId(),
+                        pc.getMonHoc().getMaMH(),
+                        pc.getMonHoc().getTenMonHoc(),
+                        pc.getMonHoc().getHocKy(),
+                        pc.getMonHoc().getNamHoc(),
+                        pc.getLopHoc().getTenLop()
+                ))
                 .toList();
     }
 
@@ -199,6 +204,22 @@ public class DiemService {
         }
 
         return soDongDaLuu;
+    }
+
+    @Transactional
+    public void xoaHocSinhKhoiMon(Long maGiangVien, Long monHocId, Long hocSinhId) {
+        layPhanCongHopLe(maGiangVien, monHocId);
+        
+        // Find and delete all BangDiem for this student across any subjects to satisfy FK constraints
+        bangDiemRepository.findByHocSinhIdAndMonHocId(hocSinhId, monHocId).ifPresent(bangDiemRepository::delete);
+        
+        // Since the UI fetches by LopHoc, we also need to delete the HocSinh entirely 
+        // to make them actually disappear from the list.
+        hocSinhRepository.findById(hocSinhId).ifPresent(hs -> {
+            // Need to delete any other BangDiem first just in case they have grades in other subjects
+            bangDiemRepository.deleteAll(bangDiemRepository.findByHocSinhId(hocSinhId));
+            hocSinhRepository.delete(hs);
+        });
     }
 
     @Transactional

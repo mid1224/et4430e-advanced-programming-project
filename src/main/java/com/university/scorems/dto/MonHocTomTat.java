@@ -11,4 +11,5 @@ public class MonHocTomTat {
     private String tenMonHoc;
     private Integer hocKy;
     private String namHoc;
+    private String tenLop;
 }
