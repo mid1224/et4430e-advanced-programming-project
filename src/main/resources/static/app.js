@@ -9,6 +9,10 @@ const toast = document.getElementById("toast");
 
 let danhSachMonHoc = [];
 let duLieuBangDiem = [];
+let thongTinBangDiem = null;
+let phanCongHienTaiId = null; 
+let isKhoaMode = window.location.pathname.includes('/khoa_CM');
+let isDeleteMode = false;
 
 function lamTronHaiChuSo(value) {
     return Math.round(value * 100) / 100;
@@ -170,7 +174,7 @@ function monHocDangChon() {
 
 function veDanhSachMonHoc() {
     monHocSelect.innerHTML = danhSachMonHoc
-        .map(monHoc => `<option value="${monHoc.id}">${monHoc.maMH} - ${monHoc.tenMonHoc}</option>`)
+        .map(monHoc => `<option value="${monHoc.id}">${monHoc.maMH} - ${monHoc.tenMonHoc} - ${monHoc.tenLop}</option>`)
         .join("");
 }
 
@@ -200,14 +204,77 @@ function veThongTinMonHoc() {
     capNhatStatsLive();
 }
 
+const cheDoNhapDiemSelect = document.getElementById("cheDoNhapDiemSelect");
+
+function apDungCheDoNhapDiem() {
+    if (!cheDoNhapDiemSelect) return;
+    const cheDo = cheDoNhapDiemSelect.value;
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const checkPeriod = (start, end) => {
+        if (start && todayStr < start) return false;
+        if (end && todayStr > end) return false;
+        return true;
+    };
+
+    const isOpenGK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapGiuaKy, thongTinBangDiem.ngayKetThucNhapGiuaKy) : true;
+    const isOpenCK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapCuoiKy, thongTinBangDiem.ngayKetThucNhapCuoiKy) : true;
+
+    document.querySelectorAll("#bangDiemBody input").forEach(input => {
+        const field = input.dataset.field;
+        let isPeriodOpen = true;
+        let isModeActive = true;
+
+        if (field === "diemKTThuongXuyen" || field === "diemKTDinhKy") {
+            isPeriodOpen = isOpenGK;
+            if (cheDo === "tx" && field !== "diemKTThuongXuyen") isModeActive = false;
+            if (cheDo === "dk" && field !== "diemKTDinhKy") isModeActive = false;
+            if (cheDo === "thi") isModeActive = false;
+        } else if (field === "diemKTKetThuc") {
+            isPeriodOpen = isOpenCK;
+            if (cheDo === "tx" || cheDo === "dk") isModeActive = false;
+            if (cheDo === "thi" && field !== "diemKTKetThuc") isModeActive = false;
+        }
+
+        if (!isPeriodOpen) {
+            input.disabled = true;
+            input.classList.add("closed-period");
+        } else if (!isModeActive) {
+            input.disabled = true;
+            input.classList.remove("closed-period");
+            input.style.backgroundColor = "#e9ecef";
+        } else {
+            input.disabled = false;
+            input.classList.remove("closed-period");
+            input.style.backgroundColor = "";
+        }
+    });
+}
+
+if (cheDoNhapDiemSelect) {
+    cheDoNhapDiemSelect.addEventListener("change", apDungCheDoNhapDiem);
+}
+
 function veBangDiem() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const checkPeriod = (start, end) => {
+        if (start && todayStr < start) return false;
+        if (end && todayStr > end) return false;
+        return true;
+    };
+
+    const isOpenGK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapGiuaKy, thongTinBangDiem.ngayKetThucNhapGiuaKy) : true;
+    const isOpenCK = thongTinBangDiem ? checkPeriod(thongTinBangDiem.ngayBatDauNhapCuoiKy, thongTinBangDiem.ngayKetThucNhapCuoiKy) : true;
+
+    // Remove disabledAttrs logic here, it is handled by apDungCheDoNhapDiem()
+    
     bangDiemBody.innerHTML = duLieuBangDiem.map((dong, index) => {
         const diemTX = dong.diemKTThuongXuyen ?? "";
         const diemDK = dong.diemKTDinhKy ?? "";
         const diemKTKetThuc = dong.diemKTKetThuc ?? "";
         const ghiChu = escapeThuocTinh(dong.ghiChu ?? "");
 
-        // Đã gắn thêm data-view vào các cột điểm tổng kết, điểm chữ, điểm hệ 4 và trạng thái lưu
         return `
         <tr data-hocsinhid="${dong.hocSinhId}">
             <td class="center">${index + 1}</td>
@@ -221,13 +288,19 @@ function veBangDiem() {
             <td class="center" data-view="diemTongKet" data-hocsinhid="${dong.hocSinhId}">${dong.diemTongKet ?? ""}</td>
             <td class="center" data-view="diemChu" data-hocsinhid="${dong.hocSinhId}">${dong.diemChu ?? ""}</td>
             <td class="center" data-view="diemHe4" data-hocsinhid="${dong.hocSinhId}">${dong.diemHe4 ?? ""}</td>
-            <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}"></td>
+            <td><input data-field="ghiChu" data-hocsinhid="${dong.hocSinhId}" type="text" maxlength="255" value="${ghiChu}" tabindex="-1"></td>
             <td class="center" data-view="trangThaiLuu" data-hocsinhid="${dong.hocSinhId}">Đã lưu</td>
+            <td class="delete-col" style="display: ${isDeleteMode ? 'table-cell' : 'none'};">
+                <button type="button" class="btn-delete" data-hocsinhid="${dong.hocSinhId}" style="background: none; border: none; cursor: pointer; color: red; font-size: 16px;">🗑️</button>
+            </td>
         </tr>`;
     }).join("");
 
     // Kích hoạt tính toán ban đầu mà không đánh dấu là chưa lưu
     duLieuBangDiem.forEach(dong => capNhatDongTinhToan(dong.hocSinhId, false));
+    
+    // Apply initial dropdown state
+    apDungCheDoNhapDiem();
 }
 
 // Bắt sự kiện thay đổi trên bất kỳ ô input nào thuộc bảng để cập nhật trạng thái ngay lập tức
@@ -277,11 +350,27 @@ async function taiMonHoc() {
 
 async function taiBangDiem() {
     const monHocId = monHocDangChon();
+    const btnLuu = document.getElementById("luuBangDiemBtn");
+    
     if (!monHocId) {
-        hienToast("Vui lòng chọn môn học", false);
+        document.getElementById("bangDiemBody").innerHTML = "";
+        document.getElementById("thongTinMonHoc").textContent = "";
+        if (btnLuu) btnLuu.disabled = true;
         return;
     }
-    duLieuBangDiem = await goiApi(`/api/bang-diem/${monHocId}`);
+    
+    if (btnLuu) btnLuu.disabled = false;
+    // Disable inputs while loading
+    const tbody = document.getElementById("bangDiemBody");
+    thongTinBangDiem = await goiApi(`/api/bang-diem/${monHocId}?_t=${Date.now()}`);
+    
+    // Xử lý trường hợp cache trình duyệt trả về mảng cũ hoặc format mới
+    if (Array.isArray(thongTinBangDiem)) {
+        duLieuBangDiem = thongTinBangDiem;
+        thongTinBangDiem = null;
+    } else {
+        duLieuBangDiem = thongTinBangDiem.danhSachDiem || [];
+    }
     veBangDiem();
     veThongTinMonHoc();
 }
@@ -344,12 +433,12 @@ if (importXmlBtn && importXmlInput) {
         formData.append("file", file);
 
         try {
-            const data = await fetch(`/api/bang-diem/import-xml/${monHocDangChon()}`, {
+            const data = await fetch(`/api/bang-diem/import-excel/${monHocDangChon()}`, {
                 method: "POST",
                 body: formData
             });
             const res = await data.json();
-            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import Excel");
             
             hienToast(res.thongBao, true);
             taiBangDiem();
@@ -369,10 +458,51 @@ if (exportXmlBtn) {
             hienToast("Vui lòng chọn môn học trước khi export", false);
             return;
         }
-        window.open(`/api/bang-diem/export-xml/${monHocId}`, "_blank");
+        window.open(`/api/bang-diem/export-excel/${monHocId}`, "_blank");
     });
 }
 
+const deleteStudentModeBtn = document.getElementById("deleteStudentModeBtn");
+if (deleteStudentModeBtn) {
+    deleteStudentModeBtn.addEventListener("click", () => {
+        isDeleteMode = !isDeleteMode;
+        if (isDeleteMode) {
+            deleteStudentModeBtn.style.fontWeight = "bold";
+            deleteStudentModeBtn.textContent = "Hủy xóa học sinh";
+        } else {
+            deleteStudentModeBtn.style.fontWeight = "normal";
+            deleteStudentModeBtn.textContent = "Chế độ xóa học sinh";
+        }
+        
+        document.querySelectorAll(".delete-col").forEach(col => {
+            col.style.display = isDeleteMode ? "table-cell" : "none";
+        });
+    });
+}
+
+bangDiemBody.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-delete");
+    if (!btn) return;
+    
+    const hocSinhId = btn.dataset.hocsinhid;
+    const monHocId = monHocDangChon();
+    if (!hocSinhId || !monHocId) return;
+    
+    if (!confirm("Bạn có chắc chắn muốn xóa học sinh này khỏi lớp? Toàn bộ điểm của học sinh này trong môn sẽ bị xóa!")) return;
+    
+    try {
+        const data = await fetch(`/api/bang-diem/${monHocId}/hoc-sinh/${hocSinhId}`, {
+            method: "DELETE"
+        });
+        const res = await data.json();
+        if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi xóa học sinh");
+        
+        hienToast(res.thongBao, true);
+        taiBangDiem();
+    } catch (error) {
+        hienToast(error.message, false);
+    }
+});
 luuBangDiemBtn.addEventListener("click", () => luuBangDiem().catch(err => hienToast(err.message, false)));
 nopPhieuBtn.addEventListener("click", () => nopPhieu().catch(err => hienToast(err.message, false)));
 xemPhieuBtn.addEventListener("click", xemPhieu);

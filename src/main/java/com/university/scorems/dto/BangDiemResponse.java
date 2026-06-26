@@ -1,16 +1,17 @@
 package com.university.scorems.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
-@Setter
-public class CapNhatPhanCongRequest {
-    private Long maGiangVien;
-    private Double heSoGiuaKy;
+@AllArgsConstructor
+public class BangDiemResponse {
     private LocalDate ngayBatDauNhapGiuaKy;
     private LocalDate ngayKetThucNhapGiuaKy;
     private LocalDate ngayBatDauNhapCuoiKy;
     private LocalDate ngayKetThucNhapCuoiKy;
+    private List<DongBangDiem> danhSachDiem;
 }

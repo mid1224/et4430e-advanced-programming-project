@@ -41,10 +41,10 @@ CREATE TABLE IF NOT EXISTS bang_diem (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     hoc_sinh_id BIGINT NOT NULL,
     mon_hoc_id BIGINT NOT NULL,
-    diem_kt_thuong_xuyen DOUBLE NOT NULL,
-    diem_kt_dinh_ky DOUBLE NOT NULL,
-    diem_tbc DOUBLE NOT NULL,
-    trang_thai_du_thi BIT(1) NOT NULL,
+    diem_kt_thuong_xuyen DOUBLE NULL,
+    diem_kt_dinh_ky DOUBLE NULL,
+    diem_tbc DOUBLE NULL,
+    trang_thai_du_thi BIT(1) NULL,
     diem_kt_ket_thuc DOUBLE NULL,
     diem_tong_ket DOUBLE NULL,
     diem_chu VARCHAR(2) NULL,
@@ -74,3 +74,8 @@ CREATE TABLE IF NOT EXISTS tai_khoan_khoa (
 
 CREATE INDEX idx_bang_diem_mon ON bang_diem(mon_hoc_id);
 CREATE INDEX idx_phan_cong ON phan_cong_giang_day(ma_giang_vien, mon_hoc_id);
+
+ALTER TABLE bang_diem MODIFY diem_kt_thuong_xuyen DOUBLE NULL;
+ALTER TABLE bang_diem MODIFY diem_kt_dinh_ky DOUBLE NULL;
+ALTER TABLE bang_diem MODIFY diem_tbc DOUBLE NULL;
+ALTER TABLE bang_diem MODIFY trang_thai_du_thi BIT(1) NULL;

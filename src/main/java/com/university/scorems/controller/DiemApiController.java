@@ -39,13 +39,13 @@ public class DiemApiController {
     }
 
     @GetMapping("/bang-diem/{monHocId}")
-    public List<DongBangDiem> layBangDiem(@PathVariable Long monHocId, HttpSession session) {
+    public com.university.scorems.dto.BangDiemResponse layBangDiem(@PathVariable Long monHocId, HttpSession session) {
         return diemService.layBangDiemTheoMon(layMaGiangVien(session), monHocId);
     }
 
     @PostMapping("/bang-diem/luu")
     public ApiThongBao luuBangDiem(@RequestBody NhapBangDiemRequest request, HttpSession session) {
-        int soDong = diemService.luuBangDiem(layMaGiangVien(session), request);
+        int soDong = diemService.luuBangDiem(layMaGiangVien(session), request, false);
         return new ApiThongBao(true, "Da luu " + soDong + " dong diem thanh cong");
     }
 
@@ -55,16 +55,24 @@ public class DiemApiController {
         return new ApiThongBao(true, "Da nop phieu BM03 ngay " + ngayNop);
     }
 
-    @PostMapping("/bang-diem/import-xml/{monHocId}")
-    public ApiThongBao importXml(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
-        int soDong = diemService.importXml(layMaGiangVien(session), monHocId, file);
-        return new ApiThongBao(true, "Đã import thành công " + soDong + " dòng điểm từ XML.");
+    @PostMapping("/bang-diem/import-excel/{monHocId}")
+    public ApiThongBao importExcel(@PathVariable Long monHocId, @RequestParam("file") MultipartFile file, HttpSession session) {
+        Long maGiangVien = layMaGiangVien(session);
+        int rows = diemService.importExcel(maGiangVien, monHocId, file);
+        return new ApiThongBao(true, "Đã import thành công " + rows + " dòng điểm từ Excel");
     }
 
-    @GetMapping("/bang-diem/export-xml/{monHocId}")
-    public ResponseEntity<byte[]> exportXml(@PathVariable Long monHocId, HttpSession session) {
+    @org.springframework.web.bind.annotation.DeleteMapping("/bang-diem/{monHocId}/hoc-sinh/{hocSinhId}")
+    public ApiThongBao xoaHocSinh(@PathVariable Long monHocId, @PathVariable Long hocSinhId, HttpSession session) {
         Long maGiangVien = layMaGiangVien(session);
-        return diemService.exportXmlResponse(maGiangVien, monHocId);
+        diemService.xoaHocSinhKhoiMon(maGiangVien, monHocId, hocSinhId);
+        return new ApiThongBao(true, "Đã xóa học sinh thành công");
+    }
+
+    @GetMapping("/bang-diem/export-excel/{monHocId}")
+    public ResponseEntity<byte[]> exportExcel(@PathVariable Long monHocId, HttpSession session) {
+        Long maGiangVien = layMaGiangVien(session);
+        return diemService.exportExcelResponse(maGiangVien, monHocId);
     }
 
     @GetMapping("/phieu-bm03/{monHocId}")

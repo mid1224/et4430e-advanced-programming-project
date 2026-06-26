@@ -317,6 +317,10 @@ function moEditModal(idx) {
     document.getElementById("editGiangVien").value = pc.maGiangVien;
     document.getElementById("editHeSoGK").value = pc.heSoGiuaKy;
     document.getElementById("editHeSoCK").value = pc.heSoCuoiKy;
+    document.getElementById("editNgayBatDauGK").value = pc.ngayBatDauNhapGiuaKy || "";
+    document.getElementById("editNgayKetThucGK").value = pc.ngayKetThucNhapGiuaKy || "";
+    document.getElementById("editNgayBatDauCK").value = pc.ngayBatDauNhapCuoiKy || "";
+    document.getElementById("editNgayKetThucCK").value = pc.ngayKetThucNhapCuoiKy || "";
     moModal("editModal");
 }
 
@@ -324,6 +328,10 @@ document.getElementById("btnSubmitEdit").addEventListener("click", async () => {
     const id = document.getElementById("editPhanCongId").value;
     const maGiangVien = document.getElementById("editGiangVien").value;
     const heSoGiuaKy = parseFloat(document.getElementById("editHeSoGK").value);
+    const ngayBatDauNhapGiuaKy = document.getElementById("editNgayBatDauGK").value || null;
+    const ngayKetThucNhapGiuaKy = document.getElementById("editNgayKetThucGK").value || null;
+    const ngayBatDauNhapCuoiKy = document.getElementById("editNgayBatDauCK").value || null;
+    const ngayKetThucNhapCuoiKy = document.getElementById("editNgayKetThucCK").value || null;
 
     if (!maGiangVien) {
         hienToast("Vui lòng chọn giảng viên", false);
@@ -339,7 +347,7 @@ document.getElementById("btnSubmitEdit").addEventListener("click", async () => {
         await goiApi(`/api/khoa/phan-cong/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ maGiangVien: +maGiangVien, heSoGiuaKy })
+            body: JSON.stringify({ maGiangVien: +maGiangVien, heSoGiuaKy, ngayBatDauNhapGiuaKy, ngayKetThucNhapGiuaKy, ngayBatDauNhapCuoiKy, ngayKetThucNhapCuoiKy })
         });
         hienToast("Cập nhật phân công và hệ số thành công!", true);
         dongModal("editModal");
@@ -378,12 +386,12 @@ async function moViewModal(idx) {
         formData.append("file", file);
         
         try {
-            const data = await fetch(`/api/khoa/phan-cong/${pc.id}/import-xml`, {
+            const data = await fetch(`/api/khoa/phan-cong/${pc.id}/import-excel`, {
                 method: "POST",
                 body: formData
             });
             const res = await data.json();
-            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import XML");
+            if (!data.ok || !res.thanhCong) throw new Error(res.thongBao || "Lỗi khi import Excel");
             
             hienToast(res.thongBao, true);
             // Reload view modal to show new scores
@@ -395,9 +403,9 @@ async function moViewModal(idx) {
         }
     };
 
-    // Bind export XML button
+    // Bind export Excel button
     document.getElementById("btnExportKhoaXml").onclick = () => {
-        window.open(`/api/khoa/phan-cong/${pc.id}/export-xml`, "_blank");
+        window.open(`/api/khoa/phan-cong/${pc.id}/export-excel`, "_blank");
     };
 
     // Load score sheet
@@ -419,18 +427,18 @@ async function moViewModal(idx) {
                 <td class="center">${i + 1}</td>
                 <td class="center" style="font-weight: 500;">${s.mssv}</td>
                 <td>${s.hoTen}</td>
-                <td class="center">${s.diemKTThuongXuyen !== null ? s.diemKTThuongXuyen : ""}</td>
-                <td class="center">${s.diemKTDinhKy !== null ? s.diemKTDinhKy : ""}</td>
-                <td class="center" style="font-weight: 500;">${s.diemTBC !== null ? s.diemTBC : ""}</td>
+                <td class="center">${s.diemKTThuongXuyen ?? ""}</td>
+                <td class="center">${s.diemKTDinhKy ?? ""}</td>
+                <td class="center" style="font-weight: 500;">${s.diemTBC ?? ""}</td>
                 <td class="center">
                     ${s.trangThaiDuThi === true 
                         ? '<span class="badge-status success">Đủ ĐK</span>' 
                         : (s.trangThaiDuThi === false ? '<span class="badge-status error">Hỏng</span>' : "")}
                 </td>
-                <td class="center">${s.diemKTKetThuc !== null ? s.diemKTKetThuc : ""}</td>
-                <td class="center" style="font-weight: bold; color: #1e3a8a;">${s.diemTongKet !== null ? s.diemTongKet : ""}</td>
-                <td class="center" style="font-weight: bold;">${s.diemChu !== null ? s.diemChu : ""}</td>
-                <td>${s.ghiChu !== null ? s.ghiChu : ""}</td>
+                <td class="center">${s.diemKTKetThuc ?? ""}</td>
+                <td class="center" style="font-weight: bold; color: #1e3a8a;">${s.diemTongKet ?? ""}</td>
+                <td class="center" style="font-weight: bold;">${s.diemChu ?? ""}</td>
+                <td>${s.ghiChu ?? ""}</td>
             </tr>
         `).join("");
     } catch (e) {

@@ -98,7 +98,11 @@ public class KhoaService {
                     pc.getLopHoc().getId(),
                     pc.getLopHoc().getTenLop(),
                     gk,
-                    ck
+                    ck,
+                    pc.getNgayBatDauNhapGiuaKy(),
+                    pc.getNgayKetThucNhapGiuaKy(),
+                    pc.getNgayBatDauNhapCuoiKy(),
+                    pc.getNgayKetThucNhapCuoiKy()
             );
         }).toList();
     }
@@ -244,6 +248,12 @@ public class KhoaService {
             monHoc.setHeSoGiuaKy(request.getHeSoGiuaKy());
             monHocRepository.save(monHoc);
         }
+
+        phanCong.setNgayBatDauNhapGiuaKy(request.getNgayBatDauNhapGiuaKy());
+        phanCong.setNgayKetThucNhapGiuaKy(request.getNgayKetThucNhapGiuaKy());
+        phanCong.setNgayBatDauNhapCuoiKy(request.getNgayBatDauNhapCuoiKy());
+        phanCong.setNgayKetThucNhapCuoiKy(request.getNgayKetThucNhapCuoiKy());
+        phanCongGiangDayRepository.save(phanCong);
     }
 
     @Transactional(readOnly = true)

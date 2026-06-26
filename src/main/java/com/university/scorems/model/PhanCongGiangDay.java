@@ -1,6 +1,7 @@
 package com.university.scorems.model;
 
 import jakarta.persistence.Column;
+import java.time.LocalDate;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -38,4 +39,16 @@ public class PhanCongGiangDay {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "lop_hoc_id", nullable = false)
     private LopHoc lopHoc;
+
+    @Column(name = "ngay_bat_dau_nhap_giua_ky")
+    private LocalDate ngayBatDauNhapGiuaKy;
+
+    @Column(name = "ngay_ket_thuc_nhap_giua_ky")
+    private LocalDate ngayKetThucNhapGiuaKy;
+
+    @Column(name = "ngay_bat_dau_nhap_cuoi_ky")
+    private LocalDate ngayBatDauNhapCuoiKy;
+
+    @Column(name = "ngay_ket_thuc_nhap_cuoi_ky")
+    private LocalDate ngayKetThucNhapCuoiKy;
 }
